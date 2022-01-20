@@ -717,7 +717,7 @@ namespace flashkit_md
                             new Font("Tahoma", (float)10.25, FontStyle.Regular),
                             Brushes.Blue, new PointF(progressBar1.Width / 2 - 10,
                             progressBar1.Height / 2 - 7));
-                        */ 
+                        */
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
@@ -823,14 +823,12 @@ namespace flashkit_md
                         while (rom[i] != rom2[i])
                         {
                             int j = 256 - (i - (i / 256) * 256);
-                            consWriteLine("... afterburn at " + (i % 2 != 0 ? i-- : i).ToString("X6") + " to " + (i + j).ToString("X6"));
-                            Device.setAddr(i);
-                            Device.flash29lWrite(rom, i % 2 != 0 ? i-- : i, j);
-                            Device.setDelay(5);
+                            int k = (i - (i / 2) * 2) != 0 ? i-- : i;
+                            consWriteLine("... afterburn at " + k.ToString("X6") + " to " + (i + j).ToString("X6"));
+                            Device.flash29lWrite(rom, k, j);
                             Device.flash29lReset();
-                            Device.setAddr(i % 2 != 0 ? i-- : i);
-                            Device.read(rom2, i % 2 != 0 ? i-- : i, j);
-                            Device.setDelay(5);
+                            Device.setAddr(k);
+                            Device.read(rom2, k, j);
                         }
 
                     }
