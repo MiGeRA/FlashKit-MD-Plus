@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+//using System.Collections.Generic;
+//using System.ComponentModel;
+//using System.Data;
+//using System.Drawing;
+//using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Security.Cryptography;
@@ -38,7 +38,21 @@ namespace flashkit_md
 
                 Device.connect();
                 Device.setDelay(1);
+
                 consWriteLine("Connected to: " + Device.getPortName());
+
+                Device.flash29lReset();
+                if (Device.flash29lIdentMfr() != 0xffff) consWriteLine("Manifacture ID: " + Device.flash29lIdentMfr().ToString("X4"));
+                if (Device.flash29lIdentDev() != 0xffff) consWriteLine("Device ID: " + Device.flash29lIdentDev().ToString("X4"));
+                Device.flash29lReset();
+
+                //Device.flash29lvReset();
+                //if (Device.flash29lvIdentMfr() != 0xffff) consWriteLine("Manifacture ID: " + Device.flash29lvIdentMfr().ToString("X4"));
+                //if (Device.flash29lvIdentDev() != 0xffff) consWriteLine("Device ID: " + Device.flash29lvIdentDev().ToString("X4"));
+                //if (Device.flash29lvFactLock() != 0xffff) consWriteLine("Factory Lock: " + Device.flash29lvFactLock().ToString("X4"));
+                //Device.flash29lvReset();
+
+                consWriteLine("-----------------------------------------------------");
                 consWriteLine("ROM name : " + Cart.getRomName());
                 consWriteLine("ROM size : " + Cart.getRomSize() / 1024 + "K");
                 ram_size = Cart.getRamSize();
@@ -229,7 +243,7 @@ namespace flashkit_md
                     for (int i = 0; i < copy_len; i++)
                     {
                         if (i % 2 == 0) continue;
-                        if (ram[i] != ram2[i]) throw new Exception("Verify error at " + i);
+                        if (ram[i] != ram2[i]) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                     }
 
                     copy_len /= 2;
@@ -315,7 +329,7 @@ namespace flashkit_md
                     progressBar1.Value = rom_size;
                     for (int i = 0; i < rom_size; i++)
                     {
-                        if (rom[i] != rom2[i]) throw new Exception("Verify error at " + i);
+                        if (rom[i] != rom2[i]) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                     }
 
                     consWriteLine("OK");
@@ -344,7 +358,7 @@ namespace flashkit_md
                 int rom_size = 4194304; // max volume
                 int block_len = 32768;
                 Device.connect();
-                Device.setDelay(0);
+                Device.setDelay(1);
 
                 consWriteLine("-----------------------------------------------------");
                 progressBar1.Value = 0;
@@ -385,7 +399,7 @@ namespace flashkit_md
                 progressBar1.Value = rom_size;
                 for (int i = 0; i < rom_size; i++)
                 {
-                    if (rom[i] != 0xff) throw new Exception("Verify error at " + i);
+                    if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                 }
 
                 consWriteLine("OK");
@@ -491,7 +505,7 @@ namespace flashkit_md
 
                     for (int i = 0; i < rom_size; i += 131072)
                     {
-                        consWriteLine("Erase sector from: 0x" + i.ToString("X6"));
+                        consWriteLine("Erase sector at 0x" + i.ToString("X6"));
                         //progressBar1.Value = i;
                         progressBar1.PerformStep();
                         Device.flash28Erase(i);
@@ -563,7 +577,7 @@ namespace flashkit_md
                     progressBar1.Value = rom_size;
                     for (int i = 0; i < rom_size; i++)
                     {
-                        if (rom[i] != rom2[i]) throw new Exception("Verify error at " + i);
+                        if (rom[i] != rom2[i]) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                     }
 
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
@@ -609,7 +623,7 @@ namespace flashkit_md
 
                 for (int i = 0; i < rom_size; i += 131072)
                 {
-                    consWriteLine("Erase sector from: 0x" + i.ToString("X6"));
+                    consWriteLine("Erase sector at 0x" + i.ToString("X6"));
                     //progressBar1.Value = i;
                     progressBar1.PerformStep();
                     Device.flash28Erase(i);
@@ -648,7 +662,7 @@ namespace flashkit_md
                 progressBar1.Value = rom_size;
                 for (int i = 0; i < rom_size; i++)
                 {
-                    if (rom[i] != 0xff) throw new Exception("Verify error at " + i);
+                    if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                 }
 
                 consWriteLine("OK");
@@ -824,7 +838,7 @@ namespace flashkit_md
                         {
                             int j = 256 - (i - (i / 256) * 256);
                             int k = (i - (i / 2) * 2) != 0 ? i-- : i;
-                            consWriteLine("... afterburn at " + k.ToString("X6") + " to " + (i + j).ToString("X6"));
+                            consWriteLine("... afterburn at 0x" + k.ToString("X6") + " to 0x" + (i + j).ToString("X6"));
                             Device.flash29lWrite(rom, k, j);
                             Device.flash29lReset();
                             Device.setAddr(k);
@@ -865,8 +879,13 @@ namespace flashkit_md
                 Device.connect();
                 Device.setDelay(1);
 
-                if (Device.flash29lIdentMfr() != 0xC2)
-                    if (Device.flash29lIdentDev() != 0xF9) throw new Exception("Device 29l3211 not found ...");
+                Device.flash29lReset();
+
+                //consWriteLine("Manifacture ID: " + Device.flash29lIdentMfr().ToString("X4"));
+                //consWriteLine("Device ID: " + Device.flash29lIdentDev().ToString("X4"));
+
+                if (Device.flash29lIdentMfr() != 0xC2) throw new Exception("Device MXIC not found ...");
+                if (Device.flash29lIdentDev() != 0xF9) throw new Exception("Device 29l3211 not found ...");
 
                 consWriteLine("-----------------------------------------------------");
                 progressBar1.Value = 0;
@@ -907,7 +926,7 @@ namespace flashkit_md
                 progressBar1.Value = rom_size;
                 for (int i = 0; i < rom_size; i++)
                 {
-                    if (rom[i] != 0xff) throw new Exception("Verify error at " + i.ToString("X6"));
+                    if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                 }
                 time = (double)(DateTime.Now.Ticks - t.Ticks);
                 consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
@@ -922,6 +941,256 @@ namespace flashkit_md
                     Device.flash29lReset();
                 }
                 catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_erase29lv_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size = 4194304; // max volume
+                int block_len = 4096;
+                Device.connect();
+                Device.setDelay(1);
+
+                Device.flash29lvReset();
+
+                //consWriteLine("Manifacture ID: " + Device.flash29lvIdentMfr().ToString("X4"));
+                //consWriteLine("Device ID: " + Device.flash29lvIdentDev().ToString("X4"));
+
+                if (Device.flash29lvIdentMfr() != 0xC2) throw new Exception("Device MXIC not found ...");
+                if ((Device.flash29lvIdentDev() != 0x22A7) && (Device.flash29lvIdentDev() != 0x22A8)) throw new Exception("Device 29lv320 not found ...");
+
+                consWriteLine("-----------------------------------------------------");
+                progressBar1.Value = 0;
+                progressBar1.Maximum = rom_size;
+
+                consWriteLine("Flash erase...");
+                consWriteLine("Wait ... (~25sec average)");
+                Device.flash29lvReset();
+                DateTime t = DateTime.Now; // start time
+
+                Device.flash29lvEraseAll();
+
+                double time = (double)(DateTime.Now.Ticks - t.Ticks); // finish time
+                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                consWriteLine("OK");
+
+                consWriteLine("Blank verify...");
+                rom = new byte[rom_size];
+                Device.flash29lvReset();
+                Device.setAddr(0);
+                t = DateTime.Now;
+
+                for (int i = 0; i < rom_size; i += block_len)
+                {
+                    Device.read(rom, i, block_len);
+                    progressBar1.Value = i;
+                    this.Update();
+                    /*
+                    double ctime = (double)(DateTime.Now.Ticks - t.Ticks);
+                    progressBar1.CreateGraphics().DrawString((Math.Floor(ctime / 10000 / 1000)).ToString("G") + "sec",
+                        new Font("Tahoma", (float)10.25, FontStyle.Regular),
+                        Brushes.Blue, new PointF(progressBar1.Width / 2 - 10,
+                        progressBar1.Height / 2 - 7));
+                    */
+                }
+                progressBar1.Value = rom_size;
+                for (int i = 0; i < rom_size; i++)
+                {
+                    if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
+                }
+                time = (double)(DateTime.Now.Ticks - t.Ticks);
+                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    Device.flash29lReset();
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_wr_rom29lv_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int block_len = 4096;
+                Device.connect();
+                Device.setDelay(0);
+
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    FileStream f = File.OpenRead(openFileDialog1.FileName);
+                    rom_size = (int)f.Length;
+                    if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
+                    if (rom_size > 0x400000) rom_size = 0x400000;
+                    rom = new byte[rom_size];
+                    f.Read(rom, 0, rom_size);
+                    f.Close();
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+
+                    Device.flash29lvReset();
+                    DateTime t = DateTime.Now; // start time
+
+                    if (rom_size > 0x300000) // if above 3/4 need erase - fast do complete full chip erase
+                    {
+                        consWriteLine("Flash erase full...");
+                        consWriteLine("Wait ... (~25sec average)");
+                        Device.flash29lvEraseAll();
+                    }
+                    else
+                    {
+                        consWriteLine("Flash erase partial...");
+                        if (Device.flash29lvIdentDev() == 0x22A8) // Device with Bottom Boot part
+                        {
+                            consWriteLine("Erase small sectors ...");
+                            Device.flash29lvReset();
+                            for (int i = 0; i < 8; i++)
+                            {
+                                consWriteLine("Erase small sector at 0x" + (i * 0x1000 * 2).ToString("X6"));
+                                Device.flash29lvErase(i * 0x1000);
+                            }
+                            consWriteLine("Erase standart sector ...");
+                        }
+                        else // Device with Top Boot Part 
+                        {
+                            consWriteLine("Erase standart sector ...");
+                            consWriteLine("Erase sector at 0x000000");
+                            Device.flash29lvReset();
+                            Device.flash29lvErase(0);
+                        }
+
+                        for (int i = 0x8000; i < rom_size / 2; i += 0x8000)
+                        {
+                            consWriteLine("Erase sector at 0x" + (i * 2).ToString("X6"));
+                            Device.flash29lvErase(i);
+                        }
+                    }
+
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks); // finish time
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    consWriteLine("OK");
+
+                    progressBar1.Value = 0;
+                    consWriteLine("Flash write...");
+                    Device.flash29lvReset();
+                    Device.setAddr(0);
+                    t = DateTime.Now;
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        Device.flash29lvWrite(rom, i, block_len);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    progressBar1.Value = 0;
+
+                    consWriteLine("Flash verify...");
+                    byte[] rom2 = new byte[rom.Length];
+                    Device.flash29lvReset();
+                    Device.setAddr(0);
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        Device.read(rom2, i, block_len);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    for (int i = 0; i < rom_size; i++)
+                    {
+                        if (rom[i] != rom2[i]) throw new Exception("Verify error at 0x" + i.ToString("X6"));
+                    }
+
+                    consWriteLine("OK");
+
+                }
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    Device.flash29lvReset();
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_rd_rom29lv_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int block_size = 32768;
+                Device.connect();
+                Device.setDelay(1);
+                string rom_name = Cart.getRomName();
+                rom_name += ".bin";
+                saveFileDialog1.FileName = rom_name;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    rom_size = Cart.getRomSize();
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    rom = new byte[rom_size];
+
+                    consWriteLine("Read ROM to " + saveFileDialog1.FileName);
+                    consWriteLine("ROM size : " + rom_size / 1024 + "K");
+
+                    Device.setAddr(0);
+                    DateTime t = DateTime.Now;
+                    for (int i = 0; i < rom_size; i += block_size)
+                    {
+                        //Device.read(rom, i, block_size);
+                        Device.read(rom, i, i + block_size <= rom_size ? block_size : rom_size - (rom_size / block_size) * block_size);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    FileStream f = File.OpenWrite(saveFileDialog1.FileName);
+                    f.Write(rom, 0, rom.Length);
+                    f.Close();
+
+                    printMD5(rom);
+
+                    consWriteLine("OK");
+                }
+
+            }
+            catch (Exception x)
+            {
                 consWriteLine(x.Message);
             }
             Device.disconnect();

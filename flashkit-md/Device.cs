@@ -186,7 +186,7 @@ namespace flashkit_md
 
                 port.Write(cmd, 0, 5);
 
-                for (int i = 0; i < rd_len; )
+                for (int i = 0; i < rd_len;)
                 {
                     i += port.Read(buff, offset + i, rd_len - i);
                 }
@@ -488,14 +488,14 @@ namespace flashkit_md
 
         }
 
-        public static void flash29lErase(int addr)
+        public static void flash29lErase(int addr) // addr to word-mode !!! (linear / 2)
         {
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x80);
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
-            Device.writeByte(addr, 0x30); // addr to word, as if already *2
+            Device.writeByte(addr * 2, 0x30);
 
             while ((Device.getSR() & 0x80) == 0) { Device.setDelay(1); } // Fastest than Device.flash29lSRD()
             if ((Device.getSR() & 0x10) != 0) throw new Exception("Erase error ...");
@@ -606,6 +606,261 @@ namespace flashkit_md
                 len -= wr_len;
                 offset += wr_len;
             }
+
+        }
+
+        public static void flash29lvReset() // Reset and set Read-mode
+        {
+            Device.writeByte(0, 0xf0); // any address
+
+        }
+
+        static void flash29lvAS() // Automatic Select
+        {
+            byte[] cmd = new byte[27];
+
+            int addr_1st = 0x555;
+            int addr_2nd = 0x2aa;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_wrt = 0x90;
+
+            cmd[0] = CMD_ADDR;
+            cmd[1] = (byte)(addr_1st >> 16);
+            cmd[2] = CMD_ADDR;
+            cmd[3] = (byte)(addr_1st >> 8);
+            cmd[4] = CMD_ADDR;
+            cmd[5] = (byte)(addr_1st);
+            cmd[6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[7] = dat_1st;
+            cmd[8] = CMD_RY;
+
+            cmd[9] = CMD_ADDR;
+            cmd[10] = (byte)(addr_2nd >> 16);
+            cmd[11] = CMD_ADDR;
+            cmd[12] = (byte)(addr_2nd >> 8);
+            cmd[13] = CMD_ADDR;
+            cmd[14] = (byte)(addr_2nd);
+            cmd[15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[16] = dat_2nd;
+            cmd[17] = CMD_RY;
+
+            cmd[18] = CMD_ADDR;
+            cmd[19] = (byte)(addr_1st >> 16);
+            cmd[20] = CMD_ADDR;
+            cmd[21] = (byte)(addr_1st >> 8);
+            cmd[22] = CMD_ADDR;
+            cmd[23] = (byte)(addr_1st);
+            cmd[24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[25] = dat_wrt;
+            cmd[26] = CMD_RY;
+
+            port.Write(cmd, 0, cmd.Length);
+
+        }
+
+        public static UInt16 flash29lvIdentMfr() // return Manufacturer ID: 29LV320 -> 0x00C2
+        {
+            Device.writeByte(0, 0xf0);
+            /*
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x90);
+            */
+            Device.flash29lvAS();
+            return (Device.readWord(0));
+
+        }
+
+        public static UInt16 flash29lvIdentDev() // return Device ID: 29LV320 -> 0x22A7 | 0x22A8
+        {
+            Device.writeByte(0, 0xf0);
+            /*
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x90);
+            */
+            Device.flash29lvAS();
+            return (Device.readWord(2));
+
+        }
+
+        public static UInt16 flash29lvFactLock() // return Device ID: 29LV320 -> 0x22A7 | 0x22A8
+        {
+            Device.writeByte(0, 0xf0);
+            /*
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x90);
+            */
+            Device.flash29lvAS();
+            return (Device.readWord(6));
+
+        }
+
+        public static UInt16 flash29lvProtStat(int addr) // return Device ID: 29LV320 -> 0x22A7 | 0x22A8
+        {
+            Device.writeByte(0, 0xf0);
+            /*
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x90);
+            */
+            Device.flash29lvAS();
+            return (Device.readWord(addr + 4));
+
+        }
+
+        public static void flash29lvErase(int addr) // addr to word-mode !!! (linear / 2)
+        {
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x80);
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(addr * 2, 0x30);
+
+            while ((Device.getSR() & 0x80) == 0)
+                if (((Device.getSR() & 0x20) != 0) && ((Device.getSR() & 0x80) == 0)) throw new Exception("Erase error ...");
+
+        }
+
+        public static void flash29lvEraseAll()
+        {
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x80);
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0x10);
+
+            while ((Device.getSR() & 0x80) == 0)
+                if (((Device.getSR() & 0x20) != 0) && ((Device.getSR() & 0x80) == 0)) throw new Exception("Erase error ...");
+
+        }
+
+        public static void flash29lvProg(int addr, UInt16 data) // Write single 16-bit word
+        {
+            /*
+            Device.writeByte(0x555 * 2, 0xaa);
+            Device.writeByte(0x2aa * 2, 0x55);
+            Device.writeByte(0x555 * 2, 0xa0);
+            Device.writeWord(addr * 2, data);
+            Device.flashRY();
+            */
+
+            byte[] cmd = new byte[37];
+
+            int addr_1st = 0x555;
+            int addr_2nd = 0x2aa;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_wrt = 0xa0;
+
+            cmd[0] = CMD_ADDR;
+            cmd[1] = (byte)(addr_1st >> 16);
+            cmd[2] = CMD_ADDR;
+            cmd[3] = (byte)(addr_1st >> 8);
+            cmd[4] = CMD_ADDR;
+            cmd[5] = (byte)(addr_1st);
+            cmd[6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[7] = dat_1st;
+            cmd[8] = CMD_RY;
+
+            cmd[9] = CMD_ADDR;
+            cmd[10] = (byte)(addr_2nd >> 16);
+            cmd[11] = CMD_ADDR;
+            cmd[12] = (byte)(addr_2nd >> 8);
+            cmd[13] = CMD_ADDR;
+            cmd[14] = (byte)(addr_2nd);
+            cmd[15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[16] = dat_2nd;
+            cmd[17] = CMD_RY;
+
+            cmd[18] = CMD_ADDR;
+            cmd[19] = (byte)(addr_1st >> 16);
+            cmd[20] = CMD_ADDR;
+            cmd[21] = (byte)(addr_1st >> 8);
+            cmd[22] = CMD_ADDR;
+            cmd[23] = (byte)(addr_1st);
+            cmd[24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[25] = dat_wrt;
+            cmd[26] = CMD_RY;
+
+            cmd[27] = CMD_ADDR;
+            cmd[28] = (byte)(addr >> 16);
+            cmd[29] = CMD_ADDR;
+            cmd[30] = (byte)(addr >> 8);
+            cmd[31] = CMD_ADDR;
+            cmd[32] = (byte)(addr);
+            cmd[33] = CMD_WR | PAR_SINGLE;
+            cmd[34] = (byte)(data >> 8);
+            cmd[35] = (byte)(data);
+            cmd[36] = CMD_RY;
+
+            port.Write(cmd, 0, cmd.Length);
+
+        }
+
+        public static void flash29lvWrite(byte[] buff, int offset, int len)
+        {
+            len /= 2;
+            byte[] cmd = new byte[37 * len];
+
+            int addr_1st = 0x555;
+            int addr_2nd = 0x2aa;
+            int addr_dat = offset / 2;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_wrt = 0xa0;
+
+            for (int i = 0; i < cmd.Length; i += 37)
+            {
+                cmd[0 + i] = CMD_ADDR;
+                cmd[1 + i] = (byte)(addr_1st >> 16);
+                cmd[2 + i] = CMD_ADDR;
+                cmd[3 + i] = (byte)(addr_1st >> 8);
+                cmd[4 + i] = CMD_ADDR;
+                cmd[5 + i] = (byte)(addr_1st);
+                cmd[6 + i] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[7 + i] = dat_1st;
+                cmd[8 + i] = CMD_RY;
+
+                cmd[9 + i] = CMD_ADDR;
+                cmd[10 + i] = (byte)(addr_2nd >> 16);
+                cmd[11 + i] = CMD_ADDR;
+                cmd[12 + i] = (byte)(addr_2nd >> 8);
+                cmd[13 + i] = CMD_ADDR;
+                cmd[14 + i] = (byte)(addr_2nd);
+                cmd[15 + i] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[16 + i] = dat_2nd;
+                cmd[17 + i] = CMD_RY;
+
+                cmd[18 + i] = CMD_ADDR;
+                cmd[19 + i] = (byte)(addr_1st >> 16);
+                cmd[20 + i] = CMD_ADDR;
+                cmd[21 + i] = (byte)(addr_1st >> 8);
+                cmd[22 + i] = CMD_ADDR;
+                cmd[23 + i] = (byte)(addr_1st);
+                cmd[24 + i] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[25 + i] = dat_wrt;
+                cmd[26 + i] = CMD_RY;
+
+                cmd[27 + i] = CMD_ADDR;
+                cmd[28 + i] = (byte)(addr_dat >> 16);
+                cmd[29 + i] = CMD_ADDR;
+                cmd[30 + i] = (byte)(addr_dat >> 8);
+                cmd[31 + i] = CMD_ADDR;
+                cmd[32 + i] = (byte)(addr_dat);
+                cmd[33 + i] = CMD_WR | PAR_SINGLE;
+                cmd[34 + i] = buff[offset++];
+                cmd[35 + i] = buff[offset++];
+                cmd[36 + i] = CMD_RY;
+
+                addr_dat++;
+            }
+
+            port.Write(cmd, 0, cmd.Length);
 
         }
 

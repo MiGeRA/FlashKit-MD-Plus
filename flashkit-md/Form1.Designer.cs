@@ -48,9 +48,14 @@
             this.btn_erase29l = new System.Windows.Forms.Button();
             this.btn_wr_rom29l = new System.Windows.Forms.Button();
             this.btn_rd_rom29l = new System.Windows.Forms.Button();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.btn_erase29lv = new System.Windows.Forms.Button();
+            this.btn_wr_rom29lv = new System.Windows.Forms.Button();
+            this.btn_rd_rom29lv = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // btn_rd_rom
@@ -58,7 +63,7 @@
             this.btn_rd_rom.Location = new System.Drawing.Point(8, 23);
             this.btn_rd_rom.Margin = new System.Windows.Forms.Padding(4);
             this.btn_rd_rom.Name = "btn_rd_rom";
-            this.btn_rd_rom.Size = new System.Drawing.Size(133, 62);
+            this.btn_rd_rom.Size = new System.Drawing.Size(85, 62);
             this.btn_rd_rom.TabIndex = 0;
             this.btn_rd_rom.Text = "Read ROM";
             this.btn_rd_rom.UseVisualStyleBackColor = true;
@@ -76,7 +81,7 @@
             this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Size = new System.Drawing.Size(289, 234);
+            this.groupBox1.Size = new System.Drawing.Size(289, 163);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Flash-Cart DIY (29W-series) 2 or 4 MB";
@@ -84,10 +89,10 @@
             // 
             // btn_wr_ram
             // 
-            this.btn_wr_ram.Location = new System.Drawing.Point(148, 92);
+            this.btn_wr_ram.Location = new System.Drawing.Point(102, 92);
             this.btn_wr_ram.Margin = new System.Windows.Forms.Padding(4);
             this.btn_wr_ram.Name = "btn_wr_ram";
-            this.btn_wr_ram.Size = new System.Drawing.Size(133, 62);
+            this.btn_wr_ram.Size = new System.Drawing.Size(85, 62);
             this.btn_wr_ram.TabIndex = 3;
             this.btn_wr_ram.Text = "Write SRAM";
             this.btn_wr_ram.UseVisualStyleBackColor = true;
@@ -96,22 +101,22 @@
             // btn_erase
             // 
             this.btn_erase.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btn_erase.Location = new System.Drawing.Point(149, 161);
+            this.btn_erase.Location = new System.Drawing.Point(195, 23);
             this.btn_erase.Margin = new System.Windows.Forms.Padding(4);
             this.btn_erase.Name = "btn_erase";
-            this.btn_erase.Size = new System.Drawing.Size(133, 62);
+            this.btn_erase.Size = new System.Drawing.Size(85, 62);
             this.btn_erase.TabIndex = 5;
-            this.btn_erase.Text = "Full Erase only Flash-ROM";
+            this.btn_erase.Text = "Erase only Flash ROM";
             this.btn_erase.UseVisualStyleBackColor = false;
             this.btn_erase.Click += new System.EventHandler(this.btn_erase_Click);
             // 
             // btn_check
             // 
             this.btn_check.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btn_check.Location = new System.Drawing.Point(8, 161);
+            this.btn_check.Location = new System.Drawing.Point(195, 93);
             this.btn_check.Margin = new System.Windows.Forms.Padding(4);
             this.btn_check.Name = "btn_check";
-            this.btn_check.Size = new System.Drawing.Size(133, 62);
+            this.btn_check.Size = new System.Drawing.Size(85, 62);
             this.btn_check.TabIndex = 4;
             this.btn_check.Text = "Cart info";
             this.btn_check.UseVisualStyleBackColor = false;
@@ -119,12 +124,12 @@
             // 
             // btn_wr_rom
             // 
-            this.btn_wr_rom.Location = new System.Drawing.Point(148, 23);
+            this.btn_wr_rom.Location = new System.Drawing.Point(102, 23);
             this.btn_wr_rom.Margin = new System.Windows.Forms.Padding(4);
             this.btn_wr_rom.Name = "btn_wr_rom";
-            this.btn_wr_rom.Size = new System.Drawing.Size(133, 62);
+            this.btn_wr_rom.Size = new System.Drawing.Size(85, 62);
             this.btn_wr_rom.TabIndex = 1;
-            this.btn_wr_rom.Text = "Write Flash-ROM";
+            this.btn_wr_rom.Text = "Write Flash ROM";
             this.btn_wr_rom.UseVisualStyleBackColor = true;
             this.btn_wr_rom.Click += new System.EventHandler(this.btn_wr_rom_Click);
             // 
@@ -133,7 +138,7 @@
             this.btn_rd_ram.Location = new System.Drawing.Point(8, 92);
             this.btn_rd_ram.Margin = new System.Windows.Forms.Padding(4);
             this.btn_rd_ram.Name = "btn_rd_ram";
-            this.btn_rd_ram.Size = new System.Drawing.Size(133, 62);
+            this.btn_rd_ram.Size = new System.Drawing.Size(85, 62);
             this.btn_rd_ram.TabIndex = 2;
             this.btn_rd_ram.Text = "Read SRAM";
             this.btn_rd_ram.UseVisualStyleBackColor = true;
@@ -175,11 +180,11 @@
             this.groupBox2.Controls.Add(this.btn_erase28);
             this.groupBox2.Controls.Add(this.btn_wr_rom28);
             this.groupBox2.Controls.Add(this.btn_rd_rom28);
-            this.groupBox2.Location = new System.Drawing.Point(16, 430);
+            this.groupBox2.Location = new System.Drawing.Point(16, 390);
             this.groupBox2.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox2.Size = new System.Drawing.Size(289, 166);
+            this.groupBox2.Size = new System.Drawing.Size(289, 94);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "OTP-Cart Mod (PA28F400) ½ MB";
@@ -187,23 +192,23 @@
             // btn_erase28
             // 
             this.btn_erase28.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btn_erase28.Location = new System.Drawing.Point(148, 92);
+            this.btn_erase28.Location = new System.Drawing.Point(195, 23);
             this.btn_erase28.Margin = new System.Windows.Forms.Padding(4);
             this.btn_erase28.Name = "btn_erase28";
-            this.btn_erase28.Size = new System.Drawing.Size(133, 62);
+            this.btn_erase28.Size = new System.Drawing.Size(85, 62);
             this.btn_erase28.TabIndex = 5;
-            this.btn_erase28.Text = "Erase only Flash-ROM";
+            this.btn_erase28.Text = "Erase only Flash ROM";
             this.btn_erase28.UseVisualStyleBackColor = false;
             this.btn_erase28.Click += new System.EventHandler(this.btn_erase28_Click);
             // 
             // btn_wr_rom28
             // 
-            this.btn_wr_rom28.Location = new System.Drawing.Point(148, 23);
+            this.btn_wr_rom28.Location = new System.Drawing.Point(102, 23);
             this.btn_wr_rom28.Margin = new System.Windows.Forms.Padding(4);
             this.btn_wr_rom28.Name = "btn_wr_rom28";
-            this.btn_wr_rom28.Size = new System.Drawing.Size(133, 62);
+            this.btn_wr_rom28.Size = new System.Drawing.Size(85, 62);
             this.btn_wr_rom28.TabIndex = 2;
-            this.btn_wr_rom28.Text = "Write Flash-ROM";
+            this.btn_wr_rom28.Text = "Write Flash ROM";
             this.btn_wr_rom28.UseVisualStyleBackColor = true;
             this.btn_wr_rom28.Click += new System.EventHandler(this.btn_wr_rom28_Click);
             // 
@@ -212,7 +217,7 @@
             this.btn_rd_rom28.Location = new System.Drawing.Point(8, 23);
             this.btn_rd_rom28.Margin = new System.Windows.Forms.Padding(4);
             this.btn_rd_rom28.Name = "btn_rd_rom28";
-            this.btn_rd_rom28.Size = new System.Drawing.Size(133, 62);
+            this.btn_rd_rom28.Size = new System.Drawing.Size(85, 62);
             this.btn_rd_rom28.TabIndex = 1;
             this.btn_rd_rom28.Text = "Read ROM";
             this.btn_rd_rom28.UseVisualStyleBackColor = true;
@@ -223,11 +228,11 @@
             this.groupBox3.Controls.Add(this.btn_erase29l);
             this.groupBox3.Controls.Add(this.btn_wr_rom29l);
             this.groupBox3.Controls.Add(this.btn_rd_rom29l);
-            this.groupBox3.Location = new System.Drawing.Point(16, 256);
+            this.groupBox3.Location = new System.Drawing.Point(16, 186);
             this.groupBox3.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox3.Size = new System.Drawing.Size(289, 166);
+            this.groupBox3.Size = new System.Drawing.Size(289, 94);
             this.groupBox3.TabIndex = 5;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Flash-Cart DIY (MX29L3211) 4 MB";
@@ -235,23 +240,23 @@
             // btn_erase29l
             // 
             this.btn_erase29l.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btn_erase29l.Location = new System.Drawing.Point(148, 92);
+            this.btn_erase29l.Location = new System.Drawing.Point(195, 23);
             this.btn_erase29l.Margin = new System.Windows.Forms.Padding(4);
             this.btn_erase29l.Name = "btn_erase29l";
-            this.btn_erase29l.Size = new System.Drawing.Size(133, 62);
+            this.btn_erase29l.Size = new System.Drawing.Size(85, 62);
             this.btn_erase29l.TabIndex = 5;
-            this.btn_erase29l.Text = "Erase only Flash-ROM";
+            this.btn_erase29l.Text = "Erase only Flash ROM";
             this.btn_erase29l.UseVisualStyleBackColor = false;
             this.btn_erase29l.Click += new System.EventHandler(this.btn_erase29l_Click);
             // 
             // btn_wr_rom29l
             // 
-            this.btn_wr_rom29l.Location = new System.Drawing.Point(148, 23);
+            this.btn_wr_rom29l.Location = new System.Drawing.Point(102, 23);
             this.btn_wr_rom29l.Margin = new System.Windows.Forms.Padding(4);
             this.btn_wr_rom29l.Name = "btn_wr_rom29l";
-            this.btn_wr_rom29l.Size = new System.Drawing.Size(133, 62);
+            this.btn_wr_rom29l.Size = new System.Drawing.Size(85, 62);
             this.btn_wr_rom29l.TabIndex = 2;
-            this.btn_wr_rom29l.Text = "Write Flash-ROM";
+            this.btn_wr_rom29l.Text = "Write Flash ROM";
             this.btn_wr_rom29l.UseVisualStyleBackColor = true;
             this.btn_wr_rom29l.Click += new System.EventHandler(this.btn_wr_rom29l_Click);
             // 
@@ -260,17 +265,66 @@
             this.btn_rd_rom29l.Location = new System.Drawing.Point(8, 23);
             this.btn_rd_rom29l.Margin = new System.Windows.Forms.Padding(4);
             this.btn_rd_rom29l.Name = "btn_rd_rom29l";
-            this.btn_rd_rom29l.Size = new System.Drawing.Size(133, 62);
+            this.btn_rd_rom29l.Size = new System.Drawing.Size(85, 62);
             this.btn_rd_rom29l.TabIndex = 1;
             this.btn_rd_rom29l.Text = "Read ROM";
             this.btn_rd_rom29l.UseVisualStyleBackColor = true;
             this.btn_rd_rom29l.Click += new System.EventHandler(this.btn_rd_rom29l_Click);
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.btn_erase29lv);
+            this.groupBox4.Controls.Add(this.btn_wr_rom29lv);
+            this.groupBox4.Controls.Add(this.btn_rd_rom29lv);
+            this.groupBox4.Location = new System.Drawing.Point(16, 288);
+            this.groupBox4.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBox4.Size = new System.Drawing.Size(289, 94);
+            this.groupBox4.TabIndex = 6;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Flash-Cart DIY (MX29LV320) 4 MB";
+            // 
+            // btn_erase29lv
+            // 
+            this.btn_erase29lv.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.btn_erase29lv.Location = new System.Drawing.Point(195, 23);
+            this.btn_erase29lv.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_erase29lv.Name = "btn_erase29lv";
+            this.btn_erase29lv.Size = new System.Drawing.Size(85, 62);
+            this.btn_erase29lv.TabIndex = 5;
+            this.btn_erase29lv.Text = "Erase only Flash ROM";
+            this.btn_erase29lv.UseVisualStyleBackColor = false;
+            this.btn_erase29lv.Click += new System.EventHandler(this.btn_erase29lv_Click);
+            // 
+            // btn_wr_rom29lv
+            // 
+            this.btn_wr_rom29lv.Location = new System.Drawing.Point(102, 23);
+            this.btn_wr_rom29lv.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_wr_rom29lv.Name = "btn_wr_rom29lv";
+            this.btn_wr_rom29lv.Size = new System.Drawing.Size(85, 62);
+            this.btn_wr_rom29lv.TabIndex = 2;
+            this.btn_wr_rom29lv.Text = "Write Flash ROM";
+            this.btn_wr_rom29lv.UseVisualStyleBackColor = true;
+            this.btn_wr_rom29lv.Click += new System.EventHandler(this.btn_wr_rom29lv_Click);
+            // 
+            // btn_rd_rom29lv
+            // 
+            this.btn_rd_rom29lv.Location = new System.Drawing.Point(8, 23);
+            this.btn_rd_rom29lv.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_rd_rom29lv.Name = "btn_rd_rom29lv";
+            this.btn_rd_rom29lv.Size = new System.Drawing.Size(85, 62);
+            this.btn_rd_rom29lv.TabIndex = 1;
+            this.btn_rd_rom29lv.Text = "Read ROM";
+            this.btn_rd_rom29lv.UseVisualStyleBackColor = true;
+            this.btn_rd_rom29lv.Click += new System.EventHandler(this.btn_rd_rom29lv_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(967, 683);
+            this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.consoleBox);
@@ -286,6 +340,7 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
+            this.groupBox4.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -312,6 +367,10 @@
         private System.Windows.Forms.Button btn_erase29l;
         private System.Windows.Forms.Button btn_wr_rom29l;
         private System.Windows.Forms.Button btn_rd_rom29l;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Button btn_erase29lv;
+        private System.Windows.Forms.Button btn_wr_rom29lv;
+        private System.Windows.Forms.Button btn_rd_rom29lv;
     }
 }
 
