@@ -36,8 +36,8 @@ namespace flashkit_md
                     //port.BaudRate = 460800;
                     //port.BaudRate = 921600;
                     port.Open();
-                    port.ReadTimeout = 500;
-                    port.WriteTimeout = 500;
+                    port.ReadTimeout = 500; // 500ms
+                    port.WriteTimeout = 500; // 500ms
                     id = getID();
                     if ((id & 0xff) == (id >> 8) && id != 0)
                     {
@@ -238,12 +238,13 @@ namespace flashkit_md
 
         static int getSR() // Reading the status automatically set after operation
         {
-            int SR;
+            //int SR;
             byte[] cmd = new byte[1];
             cmd[0] = CMD_RD | PAR_SINGLE | PAR_MODE8;
             port.Write(cmd, 0, cmd.Length);
-            SR = port.ReadByte();
-            return SR;
+            //SR = port.ReadByte();
+            //return SR;
+            return port.ReadByte();
 
         }
 
@@ -497,9 +498,9 @@ namespace flashkit_md
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(addr * 2, 0x30);
 
+            //while ((Device.flash29lSRD() & 0x80) == 0) { }
             while ((Device.getSR() & 0x80) == 0) { Device.setDelay(1); } // Fastest than Device.flash29lSRD()
             if ((Device.getSR() & 0x10) != 0) throw new Exception("Erase error ...");
-            //while ((Device.flash29lSRD() & 0x80) == 0) { }
 
         }
 
@@ -512,9 +513,9 @@ namespace flashkit_md
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x10);
 
+            //while ((Device.flash29lSRD() & 0x80) == 0) { }
             while ((Device.getSR() & 0x80) == 0) { Device.setDelay(1); } // Fastest than Device.flash29lSRD()
             if ((Device.getSR() & 0x10) != 0) throw new Exception("Erase error ...");
-            //while ((Device.flash29lSRD() & 0x80) == 0) { }
 
         }
 
@@ -530,10 +531,17 @@ namespace flashkit_md
 
         }
 
-        static void flash29lWritePref(int addr)
+        public static void flash29lWritePage(byte[] buff, int offset, int len) // For write page - until 128 16-bit's words
         {
-            byte[] cmd = new byte[33];
-            addr /= 2;
+            int pref_len = 38; // "unlock" sequence (for Flash-EEPROM) + write command
+            int suff_blk = 50; // control sequence (for FlashKit) do delay: 50 = ~100us (0.5*4*50)
+
+            int page_len = 256; // page len - const for MX29L3211
+            int wr_len;
+
+            wr_len = len > page_len ? page_len : len;
+
+            byte[] cmd = new byte[pref_len + page_len + suff_blk * 2];
 
             int addr_1st = 0x5555;
             int addr_2nd = 0x2aaa;
@@ -541,64 +549,67 @@ namespace flashkit_md
             byte dat_2nd = 0x55;
             byte dat_wrt = 0xa0;
 
-            cmd[0] = CMD_ADDR;
-            cmd[1] = (byte)(addr_1st >> 16);
-            cmd[2] = CMD_ADDR;
-            cmd[3] = (byte)(addr_1st >> 8);
-            cmd[4] = CMD_ADDR;
-            cmd[5] = (byte)(addr_1st);
-            cmd[6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
-            cmd[7] = dat_1st;
-            cmd[8] = CMD_RY;
-
-            cmd[9] = CMD_ADDR;
-            cmd[10] = (byte)(addr_2nd >> 16);
-            cmd[11] = CMD_ADDR;
-            cmd[12] = (byte)(addr_2nd >> 8);
-            cmd[13] = CMD_ADDR;
-            cmd[14] = (byte)(addr_2nd);
-            cmd[15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
-            cmd[16] = dat_2nd;
-            cmd[17] = CMD_RY;
-
-            cmd[18] = CMD_ADDR;
-            cmd[19] = (byte)(addr_1st >> 16);
-            cmd[20] = CMD_ADDR;
-            cmd[21] = (byte)(addr_1st >> 8);
-            cmd[22] = CMD_ADDR;
-            cmd[23] = (byte)(addr_1st);
-            cmd[24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
-            cmd[25] = dat_wrt;
-            cmd[26] = CMD_RY;
-
-            cmd[27] = CMD_ADDR;
-            cmd[28] = (byte)(addr >> 16);
-            cmd[29] = CMD_ADDR;
-            cmd[30] = (byte)(addr >> 8);
-            cmd[31] = CMD_ADDR;
-            cmd[32] = (byte)(addr);
-
-            port.Write(cmd, 0, cmd.Length);
-
-        }
-
-        public static void flash29lWrite(byte[] buff, int offset, int len) // Write page - many 16-bit word ;-)
-        {
-            int wr_len;
+            int addr;
 
             while (len > 0)
             {
-                wr_len = len > 256 ? 256 : len;
+                addr = offset / 2;
 
-                Device.flash29lWritePref(offset); // Fastest than single next 4 usb-transaction
-                /*
-                Device.writeByte(0x5555 * 2, 0xaa);
-                Device.writeByte(0x2aaa * 2, 0x55);
-                Device.writeByte(0x5555 * 2, 0xa0);
-                Device.setAddr(offset);
-                */
+                cmd[0] = CMD_ADDR;
+                cmd[1] = (byte)(addr_1st >> 16);
+                cmd[2] = CMD_ADDR;
+                cmd[3] = (byte)(addr_1st >> 8);
+                cmd[4] = CMD_ADDR;
+                cmd[5] = (byte)(addr_1st);
+                cmd[6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[7] = dat_1st;
+                cmd[8] = CMD_RY;
 
-                Device.write(buff, offset, wr_len);
+                cmd[9] = CMD_ADDR;
+                cmd[10] = (byte)(addr_2nd >> 16);
+                cmd[11] = CMD_ADDR;
+                cmd[12] = (byte)(addr_2nd >> 8);
+                cmd[13] = CMD_ADDR;
+                cmd[14] = (byte)(addr_2nd);
+                cmd[15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[16] = dat_2nd;
+                cmd[17] = CMD_RY;
+
+                cmd[18] = CMD_ADDR;
+                cmd[19] = (byte)(addr_1st >> 16);
+                cmd[20] = CMD_ADDR;
+                cmd[21] = (byte)(addr_1st >> 8);
+                cmd[22] = CMD_ADDR;
+                cmd[23] = (byte)(addr_1st);
+                cmd[24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[25] = dat_wrt;
+                cmd[26] = CMD_RY;
+
+                cmd[27] = CMD_ADDR;
+                cmd[28] = (byte)(addr >> 16);
+                cmd[29] = CMD_ADDR;
+                cmd[30] = (byte)(addr >> 8);
+                cmd[31] = CMD_ADDR;
+                cmd[32] = (byte)(addr);
+
+                cmd[33] = CMD_LEN;
+                cmd[34] = (byte)(page_len / 2 >> 8);
+                cmd[35] = CMD_LEN;
+                cmd[36] = (byte)(page_len / 2);
+                cmd[37] = CMD_WR | PAR_INC;
+
+                for (int i = 0; i < page_len; i++)
+                {
+                    cmd[cmd.Length - page_len - suff_blk * 2 + i] = buff[offset + i];
+                }
+
+                for (int i = 0; i < suff_blk; i++)
+                {
+                    cmd[pref_len + page_len + i * 2] = CMD_DELAY;
+                    cmd[pref_len + page_len + i * 2 + 1] = 4; // 1pts ~0.5uS, 4 = 2uS * suff_blk
+                }
+
+                port.Write(cmd, 0, cmd.Length);
 
                 while ((Device.getSR() & 0x80) == 0) { } // Fastest than Device.flash29lSRD()
                 //if ((Device.getSR() & 0x10) != 0) throw new Exception("Program error ...");
@@ -606,6 +617,91 @@ namespace flashkit_md
                 len -= wr_len;
                 offset += wr_len;
             }
+
+        }
+
+        public static void flash29lWrite(byte[] buff, int offset, int len) // Write page - many 16-bit word ;-)
+        {
+            int pref_len = 38; // "unlock" sequence (for Flash-EEPROM) + write command
+            int suff_blk = 1333; // quantity control sequence (for FlashKit) do delay: typ. >= 5ms (0.5*6*1666)
+
+            int pg_len = 256; // page len - const for MX29L3211
+            int pg_sum = len / pg_len; // quantity page (len must by multiple of 256)
+            int pg_i = 0; // counter
+            int pg_seq = pref_len + pg_len + suff_blk * 2; // size of sequence to write page - array macro unit
+            
+            byte[] cmd = new byte[pg_seq * pg_sum];
+
+            int addr_1st = 0x5555;
+            int addr_2nd = 0x2aaa;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_wrt = 0xa0;
+
+            int addr;
+
+            while (pg_i < pg_sum)
+            {
+                addr = offset / 2;
+
+                cmd[pg_i * pg_seq + 0] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 1] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + 2] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 3] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + 4] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 5] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + 6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + 7] = dat_1st;
+                cmd[pg_i * pg_seq + 8] = CMD_RY;
+
+                cmd[pg_i * pg_seq + 9] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 10] = (byte)(addr_2nd >> 16);
+                cmd[pg_i * pg_seq + 11] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 12] = (byte)(addr_2nd >> 8);
+                cmd[pg_i * pg_seq + 13] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 14] = (byte)(addr_2nd);
+                cmd[pg_i * pg_seq + 15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + 16] = dat_2nd;
+                cmd[pg_i * pg_seq + 17] = CMD_RY;
+
+                cmd[pg_i * pg_seq + 18] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 19] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + 20] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 21] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + 22] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 23] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + 24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + 25] = dat_wrt;
+                cmd[pg_i * pg_seq + 26] = CMD_RY;
+
+                cmd[pg_i * pg_seq + 27] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 28] = (byte)(addr >> 16);
+                cmd[pg_i * pg_seq + 29] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 30] = (byte)(addr >> 8);
+                cmd[pg_i * pg_seq + 31] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 32] = (byte)(addr);
+
+                cmd[pg_i * pg_seq + 33] = CMD_LEN;
+                cmd[pg_i * pg_seq + 34] = (byte)(pg_len / 2 >> 8);
+                cmd[pg_i * pg_seq + 35] = CMD_LEN;
+                cmd[pg_i * pg_seq + 36] = (byte)(pg_len / 2);
+                cmd[pg_i * pg_seq + 37] = CMD_WR | PAR_INC;
+
+                for (int i = 0; i < pg_len; i++)
+                {
+                    cmd[pg_i * pg_seq + pref_len + i] = buff[offset++];
+                }
+
+                for (int i = 0; i < suff_blk; i++)
+                {
+                    cmd[pg_i * pg_seq + pref_len + pg_len + i * 2] = CMD_DELAY;
+                    cmd[pg_i * pg_seq + pref_len + pg_len + i * 2 + 1] = 6; // 1pts ~0.5uS, 6 = 3uS * suff_blk
+                }
+
+                pg_i++;
+            }
+
+            port.Write(cmd, 0, cmd.Length);
 
         }
 

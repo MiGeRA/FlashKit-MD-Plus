@@ -687,7 +687,7 @@ namespace flashkit_md
             {
                 byte[] rom;
                 int rom_size;
-                int block_size = 4096; // portion size
+                int block_size = 32768;
                 Device.connect();
                 Device.setDelay(1);
                 string rom_name = Cart.getRomName();
@@ -763,9 +763,11 @@ namespace flashkit_md
                 byte[] err_rate = new byte[32];
                 int rom_size;
                 int block_len = 256; // portion size by page program of Flash
+                int macro_blk = 16384; // macro portion size by (must by multiple of 256)
                 Device.connect();
                 Device.setDelay(1);
 
+                Device.flash29lReset();
                 if (Device.flash29lIdentMfr() != 0xC2)
                     if (Device.flash29lIdentDev() != 0xF9) throw new Exception("Device 29l3211 not found ...");
 
@@ -797,14 +799,14 @@ namespace flashkit_md
                     progressBar1.Value = 0;
                     consWriteLine("Flash write...");
                     consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB or " + (rom_size < 131072 ? 1 : (rom_size - (rom_size / 131072) * 131072) == 0 ? rom_size / 131072 : (rom_size / 131072) + 1).ToString("G") + " Sectors");
-                    consWriteLine("Wait ... (~1min/MB average)");
+                    consWriteLine("Wait ... (~40sec/MB average)");
                     Device.flash29lReset();
                     Device.setAddr(0);
                     t = DateTime.Now;
 
-                    for (int i = 0; i < rom_size; i += block_len)
+                    for (int i = 0; i < rom_size; i += macro_blk)
                     {
-                        Device.flash29lWrite(rom, i, block_len);
+                        Device.flash29lWrite(rom, i, macro_blk); // by macro block
                         progressBar1.Value = i;
                         this.Update();
                         /*
@@ -820,36 +822,57 @@ namespace flashkit_md
                     //printMD5(rom); // Send data checksumm
 
                     progressBar1.Value = 0;
-                    consWriteLine("Flash verify (and fix)...");
+                    consWriteLine("Reading for test...");
                     Device.flash29lReset();
                     Device.setAddr(0);
                     t = DateTime.Now;
 
-                    for (int i = 0; i < rom_size; i += block_len)
+                    for (int i = 0; i < rom_size; i += macro_blk)
                     {
-                        Device.read(rom2, i, block_len);
+                        Device.read(rom2, i, macro_blk); // by macro block
                         progressBar1.Value = i;
                         this.Update();
                     }
                     progressBar1.Value = rom_size;
+                    time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    progressBar1.Value = 0;
+                    consWriteLine("Verify (and fix)...");
+                    t = DateTime.Now;
+
+                    int aftb = 0; // afterburned page quantity
                     for (int i = 0; i < rom_size; i++)
                     {
                         while (rom[i] != rom2[i])
                         {
-                            int j = 256 - (i - (i / 256) * 256);
-                            int k = (i - (i / 2) * 2) != 0 ? i-- : i;
-                            consWriteLine("... afterburn at 0x" + k.ToString("X6") + " to 0x" + (i + j).ToString("X6"));
-                            Device.flash29lWrite(rom, k, j);
+                            /*
+                            int j = 256 - (i - (i / 256) * 256); // len
+                            int k = (i - (i / 2) * 2) != 0 ? i-- : i; // offset
+                            //consWriteLine("... afterburn at 0x" + k.ToString("X6") + " to 0x" + (i + j).ToString("X6"));
+                            Device.flash29lWritePage(rom, k, j);
                             Device.flash29lReset();
                             Device.setAddr(k);
                             Device.read(rom2, k, j);
+                            aftb++;
+                            */
+                            int k = (i / block_len) * block_len;
+                            //consWriteLine("... afterburn at 0x" + k.ToString("X6") + " to 0x" + (k + 256).ToString("X6") + " - fix in : " + i.ToString("X6"));
+                            Device.flash29lWritePage(rom, k, block_len);  // by page!
+                            Device.flash29lReset();
+                            Device.setAddr(k);
+                            Device.read(rom2, k, block_len); // by page!
+                            aftb++;
                         }
-
+                        progressBar1.Value = i;
+                        this.Update();
                     }
+                    progressBar1.Value = rom_size;
+                    consWriteLine("Has been completed afterburn: " + (aftb * 100 / (rom_size / block_len)) + "% pages need to fix (" + aftb + " pages)");
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
                     consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
-                    //printMD5(rom2); // Read data checksumm
 
+                    //printMD5(rom2); // Read data checksumm
                     consWriteLine("OK");
 
                 }
@@ -1093,7 +1116,12 @@ namespace flashkit_md
 
                     progressBar1.Value = 0;
                     consWriteLine("Flash write...");
+                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Wait ... (~25sec/MB average)");
+
                     Device.flash29lvReset();
+                    // Device.writeWord(0xA13000, 0); // disable SRAM
+                    // Device.writeWord(0xA130f1, 0); // disable SRAM
                     Device.setAddr(0);
                     t = DateTime.Now;
 
