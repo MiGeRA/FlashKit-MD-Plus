@@ -60,8 +60,6 @@ namespace flashkit_md
 
         }
 
-
-
         public static void disconnect()
         {
             if (port == null) return;
@@ -500,7 +498,7 @@ namespace flashkit_md
 
             //while ((Device.flash29lSRD() & 0x80) == 0) { }
             while ((Device.getSR() & 0x80) == 0) { Device.setDelay(1); } // Fastest than Device.flash29lSRD()
-            if ((Device.getSR() & 0x10) != 0) throw new Exception("Erase error ...");
+            if ((Device.getSR() & 0x20) != 0) throw new Exception("Erase error ...");
 
         }
 
@@ -515,7 +513,7 @@ namespace flashkit_md
 
             //while ((Device.flash29lSRD() & 0x80) == 0) { }
             while ((Device.getSR() & 0x80) == 0) { Device.setDelay(1); } // Fastest than Device.flash29lSRD()
-            if ((Device.getSR() & 0x10) != 0) throw new Exception("Erase error ...");
+            if ((Device.getSR() & 0x20) != 0) throw new Exception("Erase error ...");
 
         }
 
@@ -620,16 +618,19 @@ namespace flashkit_md
 
         }
 
-        public static void flash29lWrite(byte[] buff, int offset, int len) // Write page - many 16-bit word ;-)
+        public static void flash29lWrite(byte[] buff, int offset, int len) // Write many pages ;-)
         {
             int pref_len = 38; // "unlock" sequence (for Flash-EEPROM) + write command
             int suff_blk = 1333; // quantity control sequence (for FlashKit) do delay: typ. >= 5ms (0.5*6*1666)
+            int pstf_len = 27; // postfix - reset (for Flash-EEPROM) command sequence
 
             int pg_len = 256; // page len - const for MX29L3211
             int pg_sum = len / pg_len; // quantity page (len must by multiple of 256)
             int pg_i = 0; // counter
-            int pg_seq = pref_len + pg_len + suff_blk * 2; // size of sequence to write page - array macro unit
-            
+            // 5555 2AAA 5555 addr+0 ... addr+128 [delay] 5555 2AAA 5555
+            //  AA   55   A0  data16 ...  data16  [delay]  AA   55   F0 
+            int pg_seq = pref_len + pg_len + suff_blk * 2 + pstf_len; // size of sequence to write page - array macro unit
+
             byte[] cmd = new byte[pg_seq * pg_sum];
 
             int addr_1st = 0x5555;
@@ -637,6 +638,7 @@ namespace flashkit_md
             byte dat_1st = 0xaa;
             byte dat_2nd = 0x55;
             byte dat_wrt = 0xa0;
+            byte dat_rst = 0xf0;
 
             int addr;
 
@@ -697,6 +699,36 @@ namespace flashkit_md
                     cmd[pg_i * pg_seq + pref_len + pg_len + i * 2] = CMD_DELAY;
                     cmd[pg_i * pg_seq + pref_len + pg_len + i * 2 + 1] = 6; // 1pts ~0.5uS, 6 = 3uS * suff_blk
                 }
+
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 0] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 2] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 3] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 4] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 5] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 7] = dat_1st;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 8] = CMD_RY;
+
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 9] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 10] = (byte)(addr_2nd >> 16);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 11] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 12] = (byte)(addr_2nd >> 8);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 13] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 14] = (byte)(addr_2nd);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 16] = dat_2nd;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 17] = CMD_RY;
+
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 18] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 19] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 20] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 21] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 22] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 23] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 25] = dat_rst;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 26] = CMD_RY;
 
                 pg_i++;
             }
