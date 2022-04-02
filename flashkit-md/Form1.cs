@@ -610,7 +610,7 @@ namespace flashkit_md
                 int rom_size = 524288; // 512k - all volume
                 int block_len = 1024;
                 Device.connect();
-                Device.setDelay(0);
+                Device.setDelay(1);
 
                 if (Device.flash28IdentMfr() != 137) throw new Exception("Device 28F400 not found ..."); // 0x0089
 
@@ -864,11 +864,14 @@ namespace flashkit_md
                             Device.read(rom2, k, block_len); // by page!
                             aftb++;
                         }
-                        progressBar1.Value = i;
-                        this.Update();
+                        if (i % macro_blk == 0)
+                        {
+                            progressBar1.Value = i;
+                            this.Update();
+                        }
                     }
                     progressBar1.Value = rom_size;
-                    consWriteLine("Has been completed afterburn: " + (aftb * 100 / (rom_size / block_len)) + "% pages need to fix (" + aftb + " pages)");
+                    consWriteLine("Has been completed afterburn: " + (aftb * 100 / (rom_size / block_len)) + "% pages needed fixing (" + aftb + " pages)");
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
                     consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
 

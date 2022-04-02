@@ -42,8 +42,8 @@ namespace flashkit_md
                     if ((id & 0xff) == (id >> 8) && id != 0)
                     {
                         setDelay(0);
-                        port.WriteTimeout = 2000;
-                        port.ReadTimeout = 2000;
+                        port.WriteTimeout = 1000;
+                        port.ReadTimeout = 1000;
                         return (port.BaudRate);
                     }
                 }
@@ -447,28 +447,83 @@ namespace flashkit_md
 
         }
 
+        public static void flash29lCmd(byte code) // Send command (for Flash-EEPROM) with "unlock" sequence
+        {
+            byte[] cmd = new byte[27];
+
+            int addr_1st = 0x5555;
+            int addr_2nd = 0x2aaa;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_cmd = code;
+
+            cmd[0] = CMD_ADDR;
+            cmd[1] = (byte)(addr_1st >> 16);
+            cmd[2] = CMD_ADDR;
+            cmd[3] = (byte)(addr_1st >> 8);
+            cmd[4] = CMD_ADDR;
+            cmd[5] = (byte)(addr_1st);
+            cmd[6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[7] = dat_1st;
+            cmd[8] = CMD_RY;
+
+            cmd[9] = CMD_ADDR;
+            cmd[10] = (byte)(addr_2nd >> 16);
+            cmd[11] = CMD_ADDR;
+            cmd[12] = (byte)(addr_2nd >> 8);
+            cmd[13] = CMD_ADDR;
+            cmd[14] = (byte)(addr_2nd);
+            cmd[15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[16] = dat_2nd;
+            cmd[17] = CMD_RY;
+
+            cmd[18] = CMD_ADDR;
+            cmd[19] = (byte)(addr_1st >> 16);
+            cmd[20] = CMD_ADDR;
+            cmd[21] = (byte)(addr_1st >> 8);
+            cmd[22] = CMD_ADDR;
+            cmd[23] = (byte)(addr_1st);
+            cmd[24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[25] = dat_cmd;
+            cmd[26] = CMD_RY;
+
+            port.Write(cmd, 0, cmd.Length);
+
+        }
+
         public static void flash29lReset() // Reset and set Read-mode
         {
+            // NOT optimal - very slow and ramdom time delay ...
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0xf0);
+            */
 
+            // This is more optimal, albeit more cumbersome (do see inside to flash29lCmd)
+            Device.flash29lCmd(0xf0);
         }
 
         public static UInt16 flash29lIdentMfr() // return Manufacturer ID: 29L3211 -> 0x00C2
         {
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x90);
+            */
+            Device.flash29lCmd(0x90);
             return (Device.readWord(0));
 
         }
 
         public static UInt16 flash29lIdentDev() // return Device ID: 29L3211 -> 0x00F9
         {
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x90);
+            */
+            Device.flash29lCmd(0x90);
             return (Device.readWord(2));
 
         }
@@ -476,22 +531,32 @@ namespace flashkit_md
         static Byte flash29lSRD() // Return Status Register value data (inside use): bit7=1 is ready stat
         {
             byte stat;
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x70);
+            */
+            Device.flash29lCmd(0x70);
             stat = (byte)(readWord(0));
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x50);
+            */
+            Device.flash29lCmd(0x50);
             return (stat);
 
         }
 
         public static void flash29lErase(int addr) // addr to word-mode !!! (linear / 2)
         {
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x80);
+            */
+            Device.flash29lCmd(0x80);
+
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(addr * 2, 0x30);
@@ -504,12 +569,16 @@ namespace flashkit_md
 
         public static void flash29lEraseAll()
         {
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x80);
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x10);
+            */
+            Device.flash29lCmd(0x80);
+            Device.flash29lCmd(0x10);
 
             //while ((Device.flash29lSRD() & 0x80) == 0) { }
             while ((Device.getSR() & 0x80) == 0) { Device.setDelay(1); } // Fastest than Device.flash29lSRD()
@@ -519,9 +588,13 @@ namespace flashkit_md
 
         public static void flash29lProg(int addr, UInt16 data) // Write single 16-bit word
         {
+            /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0xa0);
+            */
+            Device.flash29lCmd(0xa0);
+
             Device.writeWord(addr * 2, data);
 
             while ((Device.getSR() & 0x80) == 0) { } // Fastest than Device.flash29lSRD()
@@ -869,14 +942,6 @@ namespace flashkit_md
 
         public static void flash29lvProg(int addr, UInt16 data) // Write single 16-bit word
         {
-            /*
-            Device.writeByte(0x555 * 2, 0xaa);
-            Device.writeByte(0x2aa * 2, 0x55);
-            Device.writeByte(0x555 * 2, 0xa0);
-            Device.writeWord(addr * 2, data);
-            Device.flashRY();
-            */
-
             byte[] cmd = new byte[37];
 
             int addr_1st = 0x555;
