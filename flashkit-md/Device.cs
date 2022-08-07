@@ -914,12 +914,84 @@ namespace flashkit_md
 
         public static void flash29lvErase(int addr) // addr to word-mode !!! (linear / 2)
         {
+            /*
             Device.writeByte(0x555 * 2, 0xaa);
             Device.writeByte(0x2aa * 2, 0x55);
             Device.writeByte(0x555 * 2, 0x80);
             Device.writeByte(0x555 * 2, 0xaa);
             Device.writeByte(0x2aa * 2, 0x55);
             Device.writeByte(addr * 2, 0x30);
+            */
+
+            byte[] cmd = new byte[53];
+
+            int addr_1st = 0x555;
+            int addr_2nd = 0x2aa;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_es1 = 0x80;
+            byte dat_es2 = 0x30;
+
+            cmd[0] = CMD_ADDR;
+            cmd[1] = (byte)(addr_1st >> 16);
+            cmd[2] = CMD_ADDR;
+            cmd[3] = (byte)(addr_1st >> 8);
+            cmd[4] = CMD_ADDR;
+            cmd[5] = (byte)(addr_1st);
+            cmd[6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[7] = dat_1st;
+            cmd[8] = CMD_RY;
+
+            cmd[9] = CMD_ADDR;
+            cmd[10] = (byte)(addr_2nd >> 16);
+            cmd[11] = CMD_ADDR;
+            cmd[12] = (byte)(addr_2nd >> 8);
+            cmd[13] = CMD_ADDR;
+            cmd[14] = (byte)(addr_2nd);
+            cmd[15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[16] = dat_2nd;
+            cmd[17] = CMD_RY;
+
+            cmd[18] = CMD_ADDR;
+            cmd[19] = (byte)(addr_1st >> 16);
+            cmd[20] = CMD_ADDR;
+            cmd[21] = (byte)(addr_1st >> 8);
+            cmd[22] = CMD_ADDR;
+            cmd[23] = (byte)(addr_1st);
+            cmd[24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[25] = dat_es1;
+            cmd[26] = CMD_RY;
+
+            cmd[27] = CMD_ADDR;
+            cmd[28] = (byte)(addr_1st >> 16);
+            cmd[29] = CMD_ADDR;
+            cmd[30] = (byte)(addr_1st >> 8);
+            cmd[31] = CMD_ADDR;
+            cmd[32] = (byte)(addr_1st);
+            cmd[33] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[34] = dat_1st;
+            cmd[35] = CMD_RY;
+
+            cmd[36] = CMD_ADDR;
+            cmd[37] = (byte)(addr_2nd >> 16);
+            cmd[38] = CMD_ADDR;
+            cmd[39] = (byte)(addr_2nd >> 8);
+            cmd[40] = CMD_ADDR;
+            cmd[41] = (byte)(addr_2nd);
+            cmd[42] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[43] = dat_2nd;
+            cmd[44] = CMD_RY;
+
+            cmd[45] = CMD_ADDR;
+            cmd[46] = (byte)(addr >> 16);
+            cmd[47] = CMD_ADDR;
+            cmd[48] = (byte)(addr >> 8);
+            cmd[49] = CMD_ADDR;
+            cmd[50] = (byte)(addr);
+            cmd[51] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+            cmd[52] = dat_es2;
+
+            port.Write(cmd, 0, cmd.Length);
 
             while ((Device.getSR() & 0x80) == 0)
                 if (((Device.getSR() & 0x20) != 0) && ((Device.getSR() & 0x80) == 0)) throw new Exception("Erase error ...");
@@ -1057,5 +1129,10 @@ namespace flashkit_md
 
         }
 
+        public static void ccSwitch()
+        {
+            Device.readWord(0x3f0000);
+
+        }
     }
 }

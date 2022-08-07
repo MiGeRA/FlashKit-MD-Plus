@@ -30,6 +30,7 @@ namespace flashkit_md
 
         private void btn_check_Click(object sender, EventArgs e)
         {
+            consoleBox.Clear();
             consWriteLine("-----------------------------------------------------");
             int ram_size;
 
@@ -779,6 +780,7 @@ namespace flashkit_md
                     //if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
                     if (rom_size % block_len != 0) rom_size = rom_size / block_len * block_len + block_len;
                     if (rom_size > 0x400000) rom_size = 0x400000;
+                    if (rom_size < macro_blk) rom_size = macro_blk;
                     rom = new byte[rom_size];
                     byte[] rom2 = new byte[rom.Length];
                     f.Read(rom, 0, rom_size);
@@ -1228,5 +1230,299 @@ namespace flashkit_md
 
         }
 
+        private void btn_erase28cc_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size = 262144; // 256k - all volume
+                int block_len = 1024;
+                Device.connect();
+                Device.setDelay(1);
+
+                if (Device.flash28IdentMfr() != 137) throw new Exception("Device 28F400 not found ..."); // 0x0089
+
+                consWriteLine("-----------------------------------------------------");
+                progressBar1.Minimum = 0;
+                progressBar1.Maximum = rom_size;
+                progressBar1.Value = 0;
+                progressBar1.Step = rom_size / 3;
+                consWriteLine("Flash erase...");
+
+                for (int i = 0; i < rom_size; i += 131072)
+                {
+                    consWriteLine("Erase sector at 0x" + i.ToString("X6"));
+                    //progressBar1.Value = i;
+                    progressBar1.PerformStep();
+                    Device.flash28Erase(i);
+                    this.Update();
+                }
+
+                progressBar1.PerformStep();
+                if (Device.flash28IdentDev() == 17520) // 0x4470
+                {
+                    consWriteLine("Detected -T device, erase boot block sectors ...");
+                    Device.flash28Erase(0x38000);
+                    Device.flash28Erase(0x3A000);
+                    Device.flash28Erase(0x3C000);
+                }
+                else if (Device.flash28IdentDev() == 17521) // 0x4471
+                {
+                    consWriteLine("Detected -B device, erase boot block sectors ...");
+                    Device.flash28Erase(0x04000);
+                    Device.flash28Erase(0x06000);
+                    Device.flash28Erase(0x08000);
+                }
+                else throw new Exception("Unknown variant of 28F400 - boot block not erased ...");
+                progressBar1.Value = rom_size;
+
+                Device.flash28Reset();
+                consWriteLine("Blank verify...");
+                rom = new byte[rom_size];
+                Device.setAddr(0);
+
+                for (int i = 0; i < rom_size; i += block_len)
+                {
+                    Device.read(rom, i, block_len);
+                    progressBar1.Value = i;
+                    this.Update();
+                }
+                progressBar1.Value = rom_size;
+                for (int i = 0; i < rom_size; i++)
+                {
+                    if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
+                }
+
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    Device.flash28Reset();
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_rd_rom28cc_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int block_size = 32768;
+                Device.connect();
+                Device.setDelay(1);
+                string rom_name = Cart.getRomName();
+                rom_name += ".bin";
+                saveFileDialog1.FileName = rom_name;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    //rom_size = Cart.getRomSize();
+                    rom_size = 262144; //*
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    rom = new byte[rom_size];
+
+                    consWriteLine("Read ROM to " + saveFileDialog1.FileName);
+                    consWriteLine("ROM size : " + rom_size / 1024 + "K");
+
+                    Device.flash28Reset();
+                    Device.setAddr(0);
+                    DateTime t = DateTime.Now;
+                    for (int i = 0; i < rom_size; i += block_size)
+                    {
+                        //Device.read(rom, i, block_size);
+                        Device.read(rom, i, i + block_size <= rom_size ? block_size : rom_size - (rom_size / block_size) * block_size);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    FileStream f = File.OpenWrite(saveFileDialog1.FileName);
+                    f.Write(rom, 0, rom.Length);
+                    f.Close();
+
+                    printMD5(rom);
+
+                    consWriteLine("OK");
+                }
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_wr_rom28cc_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int block_len = 1024;
+                Device.connect();
+                Device.setDelay(0);
+
+                if (Device.flash28IdentMfr() != 137) throw new Exception("Device 28F400 not found ..."); // 0x0089
+
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    FileStream f = File.OpenRead(openFileDialog1.FileName);
+                    rom_size = (int)f.Length;
+                    if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
+                    if (rom_size > 0x40000) rom_size = 0x40000;
+                    rom = new byte[rom_size];
+                    f.Read(rom, 0, rom_size);
+                    f.Close();
+
+                    progressBar1.Minimum = 0;
+                    progressBar1.Maximum = rom_size;
+                    progressBar1.Value = 0;
+                    progressBar1.Step = rom_size / 3;
+                    consWriteLine("Flash erase...");
+
+                    for (int i = 0; i < rom_size; i += 131072)
+                    {
+                        consWriteLine("Erase sector at 0x" + i.ToString("X6"));
+                        //progressBar1.Value = i;
+                        progressBar1.PerformStep();
+                        Device.flash28Erase(i);
+                        this.Update();
+                    }
+
+                    progressBar1.PerformStep();
+                    if ((rom_size > 0x38000) && (Device.flash28IdentDev() == 17520)) // 0x4470
+                    {
+                        consWriteLine("Detected -T device, erase boot block sectors ...");
+                        Device.flash28Erase(0x38000);
+                        Device.flash28Erase(0x3A000);
+                        Device.flash28Erase(0x3C000);
+                    }
+                    else if (Device.flash28IdentDev() == 17520) // 0x4470
+                    {
+                        consWriteLine("Detected -T device, not need erase boot block sectors ...");
+                    }
+                    else if (Device.flash28IdentDev() == 17521) // 0x4471
+                    {
+                        consWriteLine("Detected -B device, erase boot block sectors ...");
+                        Device.flash28Erase(0x04000);
+                        Device.flash28Erase(0x06000);
+                        Device.flash28Erase(0x08000);
+                    }
+                    else throw new Exception("Unknown variant of 28F400 - boot block not erased ...");
+
+                    progressBar1.Value = 0;
+                    consWriteLine("Flash write...");
+                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Wait... (~10sec max)");
+                    Device.setAddr(0);
+                    DateTime t = DateTime.Now;
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        Device.flash28ProgBlock(rom, i, block_len);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+
+                    /*
+                    // alt write - Ok, but too slow ...
+                    for (int i = 0; i < rom_size; i += 2)
+                    {
+                        Device.flash28Prog(i / 2 , (UInt16)((rom[i] << 8) + rom[i+1]));
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    */
+
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    //printMD5(rom); // Send data checksumm
+
+                    progressBar1.Value = 0;
+                    consWriteLine("Flash verify...");
+                    byte[] rom2 = new byte[rom.Length];
+                    Device.flash28Reset();
+                    Device.setAddr(0);
+                    t = DateTime.Now;
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        Device.read(rom2, i, block_len);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    for (int i = 0; i < rom_size; i++)
+                    {
+                        if (rom[i] != rom2[i]) throw new Exception("Verify error at 0x" + i.ToString("X6"));
+                    }
+
+                    time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    //printMD5(rom); // Read data checksumm
+
+                    consWriteLine("OK");
+
+                }
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    Device.flash28Reset();
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_sw_rom28cc_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Device.connect();
+                Device.setDelay(1);
+
+                consWriteLine("-----------------------------------------------------");
+                consWriteLine("Switch to Cart in slot...");
+                consWriteLine("");
+                consWriteLine("All two dip-switches must state is 'Off' before click this button;");
+                consWriteLine("Turn them to 'Off', if it's not and click this button again.");
+                consWriteLine("");
+                consWriteLine("For return to access Flash ROM on CC - do power cycle CC any way;");
+                consWriteLine("Do not hurry. Must have delay before power-on for get need result.");
+                consWriteLine("");
+                consWriteLine("Any of dip-switches or both is set 'On' need only in game time.");
+                consWriteLine("");
+
+                Device.ccSwitch();
+
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
     }
 }
