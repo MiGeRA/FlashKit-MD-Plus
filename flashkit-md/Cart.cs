@@ -51,8 +51,10 @@ namespace flashkit_md
         {
             string name = null;
             byte[] rom_hdr = new byte[512];
-            Device.setAddr(0);
-            Device.read(rom_hdr, 0, 512);
+            //Device.setAddr(0);
+            Device.setAddr(256); // skip first 256 bytes of vectors table
+            //Device.read(rom_hdr, 0, 512);
+            Device.read(rom_hdr, 256, 256); // read second 256 bytes
 
             name = getRomName(0x150, rom_hdr); // replace to 150 - first
 
@@ -134,8 +136,6 @@ namespace flashkit_md
             return len;
         }
 
-
-
         public static int getRomSize()
         {
             byte[] sector0 = new byte[512];
@@ -143,8 +143,10 @@ namespace flashkit_md
             int ram = 0;
             int extra_rom = 0;
 
-            Device.setAddr(0);
-            Device.read(sector0, 0, 512);
+            //Device.setAddr(0);
+            Device.setAddr(256); // skip first 256 bytes of vectors table
+            //Device.read(sector0, 0, 512);
+            Device.read(sector0, 256, 256); // read second 256 bytes
             int len = (sector0[0x1a4] << 24) + (sector0[0x1a5] << 16) + (sector0[0x1a6] << 8) + sector0[0x1a7] + 1;
 
             if (len == 0 || len > 4096 * 1024)
@@ -261,7 +263,6 @@ namespace flashkit_md
 
             return buff;
         }
-
 
     }
 }

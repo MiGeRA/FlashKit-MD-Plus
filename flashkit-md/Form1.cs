@@ -435,7 +435,7 @@ namespace flashkit_md
                 {
                     consWriteLine("-----------------------------------------------------");
                     rom_size = Cart.getRomSize();
-                    //rom_size = 524288; //*
+                    if (rom_size > 524288) rom_size = 524288; //*
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
                     rom = new byte[rom_size];
@@ -778,7 +778,7 @@ namespace flashkit_md
                     FileStream f = File.OpenRead(openFileDialog1.FileName);
                     rom_size = (int)f.Length;
                     //if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
-                    if (rom_size % block_len != 0) rom_size = rom_size / block_len * block_len + block_len;
+                    if (rom_size % macro_blk != 0) rom_size = rom_size / macro_blk * macro_blk + macro_blk;
                     if (rom_size > 0x400000) rom_size = 0x400000;
                     if (rom_size < macro_blk) rom_size = macro_blk;
                     rom = new byte[rom_size];
@@ -1324,8 +1324,8 @@ namespace flashkit_md
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
                     consWriteLine("-----------------------------------------------------");
-                    //rom_size = Cart.getRomSize();
-                    rom_size = 262144; //*
+                    rom_size = Cart.getRomSize();
+                    if (rom_size > 262144) rom_size = 262144; //*
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
                     rom = new byte[rom_size];
