@@ -506,29 +506,39 @@ namespace flashkit_md
 
         public static UInt16 flash29lIdentMfr() // return Manufacturer ID: 29L3211 -> 0x00C2
         {
-            ushort buff = Device.readWord(0);
-
+            UInt16 val = 0xFFFF;
+            UInt16 buff_data;
+            UInt16 buff_info;
             /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x90);
             */
             Device.flash29lCmd(0x90);
-            if (buff == Device.readWord(0)) return (0xFFFF); else return (Device.readWord(0));
+            buff_info = Device.readWord(0);
+            Device.flash29lReset();
+            buff_data = Device.readWord(0);
+            if (buff_data != buff_info) val = buff_info;
+            return val;
 
         }
 
         public static UInt16 flash29lIdentDev() // return Device ID: 29L3211 -> 0x00F9
         {
-            ushort buff = Device.readWord(2);
-
+            UInt16 val = 0xFFFF;
+            UInt16 buff_data;
+            UInt16 buff_info;
             /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x90);
             */
             Device.flash29lCmd(0x90);
-            if (buff == Device.readWord(2)) return (0xFFFF); else return (Device.readWord(2));
+            buff_info = Device.readWord(2);
+            Device.flash29lReset();
+            buff_data = Device.readWord(2);
+            if (buff_data != buff_info) val = buff_info;
+            return val;
 
         }
 
