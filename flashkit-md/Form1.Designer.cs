@@ -53,10 +53,14 @@
             this.btn_wr_rom29lv = new System.Windows.Forms.Button();
             this.btn_rd_rom29lv = new System.Windows.Forms.Button();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.btn_sw_rom28cc = new System.Windows.Forms.Button();
+            this.btn_erase28cc = new System.Windows.Forms.Button();
             this.btn_wr_rom28cc = new System.Windows.Forms.Button();
             this.btn_rd_rom28cc = new System.Windows.Forms.Button();
-            this.btn_erase28cc = new System.Windows.Forms.Button();
-            this.btn_sw_rom28cc = new System.Windows.Forms.Button();
+            this.cb_ident_chk = new System.Windows.Forms.CheckBox();
+            this.cb_force_erase = new System.Windows.Forms.CheckBox();
+            this.cb_rd_max = new System.Windows.Forms.CheckBox();
+            this.cb_erase_chk = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -168,7 +172,7 @@
             this.consoleBox.Name = "consoleBox";
             this.consoleBox.ReadOnly = true;
             this.consoleBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.consoleBox.Size = new System.Drawing.Size(631, 580);
+            this.consoleBox.Size = new System.Drawing.Size(631, 512);
             this.consoleBox.TabIndex = 4;
             // 
             // saveFileDialog1
@@ -340,6 +344,31 @@
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Mega-CC (PA28F400 last half only) ¼ MB";
             // 
+            // btn_sw_rom28cc
+            // 
+            this.btn_sw_rom28cc.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.btn_sw_rom28cc.Location = new System.Drawing.Point(195, 23);
+            this.btn_sw_rom28cc.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_sw_rom28cc.Name = "btn_sw_rom28cc";
+            this.btn_sw_rom28cc.Size = new System.Drawing.Size(85, 62);
+            this.btn_sw_rom28cc.TabIndex = 6;
+            this.btn_sw_rom28cc.Text = "Switch to Cart in slot";
+            this.btn_sw_rom28cc.UseVisualStyleBackColor = false;
+            this.btn_sw_rom28cc.Click += new System.EventHandler(this.btn_sw_rom28cc_Click);
+            // 
+            // btn_erase28cc
+            // 
+            this.btn_erase28cc.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.btn_erase28cc.Location = new System.Drawing.Point(195, 23);
+            this.btn_erase28cc.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_erase28cc.Name = "btn_erase28cc";
+            this.btn_erase28cc.Size = new System.Drawing.Size(85, 62);
+            this.btn_erase28cc.TabIndex = 5;
+            this.btn_erase28cc.Text = "Erase only Flash ROM";
+            this.btn_erase28cc.UseVisualStyleBackColor = false;
+            this.btn_erase28cc.Visible = false;
+            this.btn_erase28cc.Click += new System.EventHandler(this.btn_erase28cc_Click);
+            // 
             // btn_wr_rom28cc
             // 
             this.btn_wr_rom28cc.Location = new System.Drawing.Point(102, 23);
@@ -362,36 +391,61 @@
             this.btn_rd_rom28cc.UseVisualStyleBackColor = true;
             this.btn_rd_rom28cc.Click += new System.EventHandler(this.btn_rd_rom28cc_Click);
             // 
-            // btn_erase28cc
+            // cb_ident_chk
             // 
-            this.btn_erase28cc.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btn_erase28cc.Location = new System.Drawing.Point(195, 23);
-            this.btn_erase28cc.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_erase28cc.Name = "btn_erase28cc";
-            this.btn_erase28cc.Size = new System.Drawing.Size(85, 62);
-            this.btn_erase28cc.TabIndex = 5;
-            this.btn_erase28cc.Text = "Erase only Flash ROM";
-            this.btn_erase28cc.UseVisualStyleBackColor = false;
-            this.btn_erase28cc.Visible = false;
-            this.btn_erase28cc.Click += new System.EventHandler(this.btn_erase28cc_Click);
+            this.cb_ident_chk.AutoSize = true;
+            this.cb_ident_chk.Checked = true;
+            this.cb_ident_chk.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cb_ident_chk.Location = new System.Drawing.Point(319, 537);
+            this.cb_ident_chk.Name = "cb_ident_chk";
+            this.cb_ident_chk.Size = new System.Drawing.Size(152, 21);
+            this.cb_ident_chk.TabIndex = 8;
+            this.cb_ident_chk.Text = "Checking Device ID";
+            this.cb_ident_chk.UseVisualStyleBackColor = true;
             // 
-            // btn_sw_rom28cc
+            // cb_force_erase
             // 
-            this.btn_sw_rom28cc.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btn_sw_rom28cc.Location = new System.Drawing.Point(195, 23);
-            this.btn_sw_rom28cc.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_sw_rom28cc.Name = "btn_sw_rom28cc";
-            this.btn_sw_rom28cc.Size = new System.Drawing.Size(85, 62);
-            this.btn_sw_rom28cc.TabIndex = 6;
-            this.btn_sw_rom28cc.Text = "Switch to Cart in slot";
-            this.btn_sw_rom28cc.UseVisualStyleBackColor = false;
-            this.btn_sw_rom28cc.Click += new System.EventHandler(this.btn_sw_rom28cc_Click);
+            this.cb_force_erase.AutoSize = true;
+            this.cb_force_erase.Checked = true;
+            this.cb_force_erase.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cb_force_erase.Location = new System.Drawing.Point(319, 564);
+            this.cb_force_erase.Name = "cb_force_erase";
+            this.cb_force_erase.Size = new System.Drawing.Size(160, 21);
+            this.cb_force_erase.TabIndex = 9;
+            this.cb_force_erase.Text = "Erasing before Write";
+            this.cb_force_erase.UseVisualStyleBackColor = true;
+            // 
+            // cb_rd_max
+            // 
+            this.cb_rd_max.AutoSize = true;
+            this.cb_rd_max.Location = new System.Drawing.Point(477, 537);
+            this.cb_rd_max.Name = "cb_rd_max";
+            this.cb_rd_max.Size = new System.Drawing.Size(142, 21);
+            this.cb_rd_max.TabIndex = 10;
+            this.cb_rd_max.Text = "Read max volume";
+            this.cb_rd_max.UseVisualStyleBackColor = true;
+            // 
+            // cb_erase_chk
+            // 
+            this.cb_erase_chk.AutoSize = true;
+            this.cb_erase_chk.Checked = true;
+            this.cb_erase_chk.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cb_erase_chk.Location = new System.Drawing.Point(477, 565);
+            this.cb_erase_chk.Name = "cb_erase_chk";
+            this.cb_erase_chk.Size = new System.Drawing.Size(159, 21);
+            this.cb_erase_chk.TabIndex = 11;
+            this.cb_erase_chk.Text = "Verifying after Erase";
+            this.cb_erase_chk.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(967, 683);
+            this.Controls.Add(this.cb_erase_chk);
+            this.Controls.Add(this.cb_rd_max);
+            this.Controls.Add(this.cb_force_erase);
+            this.Controls.Add(this.cb_ident_chk);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
@@ -446,6 +500,10 @@
         private System.Windows.Forms.Button btn_rd_rom28cc;
         private System.Windows.Forms.Button btn_sw_rom28cc;
         private System.Windows.Forms.Button btn_erase28cc;
+        private System.Windows.Forms.CheckBox cb_ident_chk;
+        private System.Windows.Forms.CheckBox cb_force_erase;
+        private System.Windows.Forms.CheckBox cb_rd_max;
+        private System.Windows.Forms.CheckBox cb_erase_chk;
     }
 }
 

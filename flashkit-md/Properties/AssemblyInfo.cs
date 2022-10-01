@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("flashkit-md-plus")]
-[assembly: AssemblyDescription("flashkit gui tool")]
+[assembly: AssemblyDescription("FlashKit-MD software")]
 [assembly: AssemblyConfiguration("Extended version")]
 [assembly: AssemblyCompany("MiGeRA's System")]
 [assembly: AssemblyProduct("flashkit-md-plus")]
 [assembly: AssemblyCopyright("Copyright © 2014 krikzz & 2021-2022 MiGeRA's System")]
-[assembly: AssemblyTrademark("krikzz")]
+[assembly: AssemblyTrademark("flashkit-md")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

@@ -56,7 +56,7 @@ namespace flashkit_md
             }
 
             port = null;
-            throw new Exception("Device is not detected");
+            throw new Exception("FlashKit-MD is not detected");
 
         }
 
@@ -506,31 +506,36 @@ namespace flashkit_md
 
         public static UInt16 flash29lIdentMfr() // return Manufacturer ID: 29L3211 -> 0x00C2
         {
+            ushort buff = Device.readWord(0);
+
             /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x90);
             */
             Device.flash29lCmd(0x90);
-            return (Device.readWord(0));
+            if (buff == Device.readWord(0)) return (0xFFFF); else return (Device.readWord(0));
 
         }
 
         public static UInt16 flash29lIdentDev() // return Device ID: 29L3211 -> 0x00F9
         {
+            ushort buff = Device.readWord(2);
+
             /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
             Device.writeByte(0x5555 * 2, 0x90);
             */
             Device.flash29lCmd(0x90);
-            return (Device.readWord(2));
+            if (buff == Device.readWord(2)) return (0xFFFF); else return (Device.readWord(2));
 
         }
 
         static Byte flash29lSRD() // Return Status Register value data (inside use): bit7=1 is ready stat
         {
             byte stat;
+
             /*
             Device.writeByte(0x5555 * 2, 0xaa);
             Device.writeByte(0x2aaa * 2, 0x55);
