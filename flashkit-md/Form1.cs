@@ -6,7 +6,9 @@
 //using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.IO.Ports;
 using System.Security.Cryptography;
+
 
 namespace flashkit_md
 {
@@ -817,6 +819,7 @@ namespace flashkit_md
                 {
                     if (Device.flash29lIdentMfr() != 0xC2) throw new Exception("Device MXIC not found ...");
                     if (Device.flash29lIdentDev() != 0xF9) throw new Exception("Device 29l3211 not found ...");
+                    if (Device.flash29lIdentDev() != 0xF8) throw new Exception("Device 29l1611 not found ...");
                 }
 
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -972,6 +975,7 @@ namespace flashkit_md
                 {
                     if (Device.flash29lIdentMfr() != 0xC2) throw new Exception("Device MXIC not found ...");
                     if (Device.flash29lIdentDev() != 0xF9) throw new Exception("Device 29l3211 not found ...");
+                    if (Device.flash29lIdentDev() != 0xF8) throw new Exception("Device 29l1611 not found ...");
                 }
 
                 consWriteLine("-----------------------------------------------------");
@@ -1134,6 +1138,7 @@ namespace flashkit_md
                 {
                     if (Device.flash29lvIdentMfr() != 0xC2) throw new Exception("Device MXIC not found ...");
                     if ((Device.flash29lvIdentDev() != 0x22A7) && (Device.flash29lvIdentDev() != 0x22A8)) throw new Exception("Device 29lv320 not found ...");
+                    //if ((Device.flash29lvIdentDev() != 0x22FC) && (Device.flash29lvIdentDev() != 0x22A8)) throw new Exception("Device 26l6420 not found ...");
                 }
 
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -1142,7 +1147,8 @@ namespace flashkit_md
                     FileStream f = File.OpenRead(openFileDialog1.FileName);
                     rom_size = (int)f.Length;
                     if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
-                    if (rom_size > 0x400000) rom_size = 0x400000;
+                    //if (rom_size > 0x400000) rom_size = 0x400000;
+                    if (rom_size > 0x800000) rom_size = 0x800000;
                     rom = new byte[rom_size];
                     f.Read(rom, 0, rom_size);
                     f.Close();
@@ -1262,6 +1268,7 @@ namespace flashkit_md
             {
                 byte[] rom;
                 int rom_size;
+                int rom_max = 4194304 * 2;
                 int block_size = 32768;
                 Device.connect();
                 Device.setDelay(1);
@@ -1271,9 +1278,9 @@ namespace flashkit_md
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
                     consWriteLine("-----------------------------------------------------");
-                    if (cb_rd_max.Checked) rom_size = 4194304;
+                    if (cb_rd_max.Checked) rom_size = rom_max; // 4194304 * 2
                     else rom_size = Cart.getRomSize();
-                    if (rom_size > 4194304) rom_size = 4194304; //*
+                    if (rom_size > rom_max) rom_size = rom_max; //*
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
@@ -1623,5 +1630,436 @@ namespace flashkit_md
             Device.disconnect();
 
         }
-    }
-}
+
+        private void btn_cc_ram_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size = 32768;
+                int block_size = 256;
+                byte tst_val = 0xCC; // write-pattern
+                double time;
+                DateTime t;
+                Device.connect();
+                Device.setDelay(1);
+                consWriteLine("-----------------------------------------------------");
+                consWriteLine("Testing RAM...");
+
+                progressBar1.Value = 0;
+                progressBar1.Maximum = rom_size;
+                rom = new byte[rom_size];
+
+                for (int i = 0; i < rom_size; i++) rom[i] = tst_val;
+                consWriteLine("Checksum of write-pattern:");
+                printMD5(rom);
+
+                consWriteLine("Writing...");
+                Device.setAddr(0x80000);
+                t = DateTime.Now;
+                for (int i = 0; i < rom_size; i += block_size)
+                {
+                    Device.write(rom, i, block_size);
+                    //Device.write(rom, i, i + block_size <= rom_size ? block_size : rom_size - (rom_size / block_size) * block_size);
+                    progressBar1.Value = i;
+                    this.Update();
+                }
+                progressBar1.Value = rom_size;
+                time = (double)(DateTime.Now.Ticks - t.Ticks);
+                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                progressBar1.Value = 0;
+                progressBar1.Maximum = rom_size;
+
+                for (int i = 0; i < rom_size; i++) rom[i] = 0x00;
+
+                consWriteLine("Reading...");
+                Device.setAddr(0x80000);
+                t = DateTime.Now;
+                for (int i = 0; i < rom_size; i += block_size)
+                {
+                    Device.read(rom, i, block_size);
+                    //Device.read(rom, i, i + block_size <= rom_size ? block_size : rom_size - (rom_size / block_size) * block_size);
+                    progressBar1.Value = i;
+                    this.Update();
+                }
+                progressBar1.Value = rom_size;
+                time = (double)(DateTime.Now.Ticks - t.Ticks);
+                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                for (int i = 0; i < rom_size; i = i + 2) rom[i] = tst_val;
+                //for (int i = 0; i < rom_size; i++) consWrite(rom[i].ToString("X2"));
+                consWriteLine("Checksum of readed data:");
+                printMD5(rom);
+
+                consWriteLine("If checksums is equal then all is OK");
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_rd_stream_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size = 0;
+                string cmd_str = "**r";
+                string rom_name = "dump_";
+
+                SerialPort port;
+
+                consWriteLine("Testing link ...");
+                port = Device.searchEverDrive();
+                consWriteLine("Mega EverDrive detected on " + port.PortName);
+
+                port.Open();
+
+                if (rb_flash_high.Checked)
+                {
+                    rom_size = 0x40000; // 256k
+                    cmd_str += "h";
+                    rom_name += "even";
+                }
+                else if (rb_flash_low.Checked)
+                {
+                    rom_size = 0x40000; // 256k
+                    cmd_str += "l";
+                    rom_name += "odd";
+                }
+                else if (rb_flash_full.Checked)
+                {
+                    rom_size = 0x80000; // 512k
+                    cmd_str += "f";
+                    rom_name += "full";
+                }
+
+                rom_name += ".bin";
+                saveFileDialog1.FileName = rom_name;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    rom = new byte[rom_size];
+
+                    consWriteLine("Read dump to " + saveFileDialog1.FileName);
+                    consWriteLine("Stream size : " + rom_size / 1024 + "K");
+
+                    DateTime t = DateTime.Now;
+
+                    port.Write(cmd_str);
+
+                    //port.Read(rom, 0, rom_size);
+
+                    for (int i = 0; i < rom_size; i++)
+                    {
+                        rom[i] = (byte)port.ReadByte();
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+
+                    /*
+                    int i = 0;
+                    while(true)
+                    {
+                        int buff = port.ReadByte();
+                        if (buff == -1) break; else rom[i] = (byte)buff;
+                        i++;
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    */
+
+                    progressBar1.Value = rom_size;
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    FileStream f = File.OpenWrite(saveFileDialog1.FileName);
+                    f.Write(rom, 0, rom_size);
+                    f.Close();
+
+                    printMD5(rom);
+
+                    consWriteLine("OK");
+                }
+
+                if (port.IsOpen) port.Close();
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+        }
+
+        private void btn_wr_stream_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size = 0x80000; // 512k
+                int block_len = 256; // 2 * 128
+                string cmd_str = "**wf";
+
+                SerialPort port;
+
+                consWriteLine("Testing link ...");
+                port = Device.searchEverDrive();
+                consWriteLine("Mega EverDrive detected on " + port.PortName);
+
+                port.Open();
+
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    FileStream f = File.OpenRead(openFileDialog1.FileName);
+                    rom_size = (int)f.Length;
+                    if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
+                    if (rom_size > 0x80000) rom_size = 0x80000;
+                    rom = new byte[rom_size];
+                    f.Read(rom, 0, rom_size);
+                    f.Close();
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    progressBar1.Value = 0;
+                    progressBar1.Step = rom_size / block_len;
+                    consWriteLine("Data transfer...");
+                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Wait... (~20sec max)");
+
+                    DateTime t = DateTime.Now;
+
+                    port.Write(cmd_str);
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        port.Write(rom, i, block_len); // Send page
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    printMD5(rom); // Send data checksumm
+
+                    consWriteLine("OK");
+                }
+
+                if (port.IsOpen) port.Close();
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    Device.flash28Reset();
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_rd_page_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int rom_max = 4194304;
+                int block_size = 32768;
+                Device.connect();
+                Device.setDelay(1);
+
+                consWriteLine("" + Device.readWord(0xA13002).ToString("X4"));
+                consWriteLine("" + Device.readWord(0xA13008).ToString("X4"));
+                Device.writeWord(0xA13002, 0x0080);
+                Device.writeWord(0xA1300A, 1);
+
+                int sel_pg;
+                sel_pg = int.Parse(i32tb_page.Text); // String to Int
+                consWriteLine(sel_pg.ToString("G")); // Int to String               
+
+                /*
+                Device.writeWord(0xA130F0, 0x8000);
+                Device.writeWord(0xA130F2, 0x8001);
+                Device.writeWord(0xA130F4, 0x8002);
+                Device.writeWord(0xA130F6, 0x8003);
+                Device.writeWord(0xA130F8, 0x8004);
+                Device.writeWord(0xA130FA, 0x8005);
+                Device.writeWord(0xA130FC, 0x8006);
+                Device.writeWord(0xA130FE, 0x8007);
+                */
+
+                //Device.writeWord(0xA13002, 0x0000);
+                //Device.writeWord(0xA1300A, 0);
+                //consWriteLine("" + Device.readWord(0x100).ToString("X4"));
+
+                //Device.readWord(0x20400); // ??? test page change ... 0x20420,40,60,90
+                //sel_pg = 0x3002;
+                //Device.writeWord(0xA13002, (ushort)sel_pg);
+
+                /*
+                Device.writeWord(0xA13002, 0x3002);
+                Device.readWord(0x20418);
+                Device.readWord(0x20428);
+                Device.readWord(0x20440);
+                Device.readWord(0x20460);
+                Device.readWord(0x20490);
+                */
+                /*
+                Device.setAddr(0x20400);
+                Device.setAddr(0x20422);
+                Device.setAddr(0x20440);
+                Device.setAddr(0x20460);
+                Device.setAddr(0x20490);
+                */
+                string rom_name = Cart.getRomName();
+                rom_name += ".bin";
+                saveFileDialog1.FileName = rom_name;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    if (cb_rd_max.Checked) rom_size = rom_max; // 4194304
+                    else rom_size = Cart.getRomSize();
+                    if (rom_size > rom_max) rom_size = rom_max; //*
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    rom = new byte[rom_size];
+
+                    consWriteLine("Select Page " + sel_pg.ToString("G"));
+                    consWriteLine("Read ROM to " + saveFileDialog1.FileName);
+                    consWriteLine("ROM size : " + rom_size / 1024 + "K");
+
+                    Device.setAddr(0);
+                    DateTime t = DateTime.Now;
+                    for (int i = 0; i < rom_size; i += block_size)
+                    {
+                        //Device.read(rom, i, block_size);
+                        Device.read(rom, i, i + block_size <= rom_size ? block_size : rom_size - (rom_size / block_size) * block_size);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    FileStream f = File.OpenWrite(saveFileDialog1.FileName);
+                    f.Write(rom, 0, rom.Length);
+                    f.Close();
+
+                    printMD5(rom);
+
+                    consWriteLine("OK");
+                }
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
+        private void btn_sel_1st_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Device.connect();
+                Device.setDelay(1);
+
+                consWriteLine("-----------------------------------------------------");
+                consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
+                //Device.writeWord(0xA13002, 0x0020);
+                Device.writeWord(0xA1300A, 0);
+
+                consWriteLine("1-st Boot-area selected as active ...");
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+        }
+
+        private void btn_sel_2nd_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Device.connect();
+                Device.setDelay(1);
+
+                consWriteLine("-----------------------------------------------------");
+                consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008)&0x00FF).ToString("G2"));
+                //Device.writeWord(0xA13002, 0x0020);
+                Device.writeWord(0xA1300A, 1);
+
+                consWriteLine("2-nd Game-area selected as active ...");
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+        }
+
+        private void btn_sram_en_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Device.connect();
+                Device.setDelay(1);
+
+                consWriteLine("-----------------------------------------------------");
+                consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
+                Device.writeWord(0xA13002, 0x0080);
+                
+                consWriteLine("SRAM connect activated  ...");
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+        }
+
+        private void btn_sram_dis_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Device.connect();
+                Device.setDelay(1);
+
+                consWriteLine("-----------------------------------------------------");
+                consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
+                Device.writeWord(0xA13002, 0x0000);
+
+                consWriteLine("SRAM connect deactivated  ...");
+                consWriteLine("OK");
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+        }
+
+    } // End of class Form
+} // End of namespace flashkit_md

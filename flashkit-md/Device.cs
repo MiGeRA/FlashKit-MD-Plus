@@ -72,6 +72,34 @@ namespace flashkit_md
 
         }
 
+        public static SerialPort searchEverDrive() // Test only feature
+        {
+            string[] port_list = SerialPort.GetPortNames();
+            SerialPort port = null;
+
+            for (int i = 0; i < port_list.Length; i++)
+            {
+                try
+                {
+                    port = new SerialPort(port_list[i]);
+                    port.ReadTimeout = 200;
+                    port.WriteTimeout = 200;
+                    port.Open();
+                    port.ReadExisting();
+                    port.Write("  *T");
+                    if (port.ReadByte() == (byte)'k') return port;
+                    port.Close();
+                }
+                catch (Exception)
+                {
+                    if (port.IsOpen) port.Close();
+                }
+            }
+            if (port.IsOpen) port.Close();
+            return port;
+
+        }
+
         public static string getPortName()
         {
             return port.PortName;
@@ -1149,5 +1177,6 @@ namespace flashkit_md
             Device.readWord(0x3f0000);
 
         }
+
     }
 }

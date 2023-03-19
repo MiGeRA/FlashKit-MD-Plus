@@ -149,7 +149,7 @@ namespace flashkit_md
             Device.read(sector0, 256, 256); // read second 256 bytes
             int len = (sector0[0x1a4] << 24) + (sector0[0x1a5] << 16) + (sector0[0x1a6] << 8) + sector0[0x1a7] + 1;
 
-            if (len == 0 || len > 4096 * 1024)
+            if (len == 0 || len > 8192 * 1024) // default is 4096 * 1024
             {
                 if (ramAvailable())
                 {
