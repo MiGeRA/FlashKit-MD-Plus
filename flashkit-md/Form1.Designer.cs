@@ -40,6 +40,8 @@
             this.consoleBox = new System.Windows.Forms.TextBox();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog2 = new System.Windows.Forms.SaveFileDialog();
+            this.openFileDialog2 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btn_erase28 = new System.Windows.Forms.Button();
             this.btn_wr_rom28 = new System.Windows.Forms.Button();
@@ -193,6 +195,16 @@
             // 
             this.openFileDialog1.DefaultExt = "bin";
             this.openFileDialog1.Filter = "ROM Images|*.gen;*.smd;*.bin;*.rom|All files|*.*";
+            // 
+            // saveFileDialog2
+            // 
+            this.saveFileDialog2.DefaultExt = "srm";
+            this.saveFileDialog2.Filter = "SRAM Dump|*.srm|All files|*.*";
+            // 
+            // openFileDialog2
+            // 
+            this.openFileDialog2.DefaultExt = "srm";
+            this.openFileDialog2.Filter = "SRAM Dump|*.srm|All files|*.*";
             // 
             // groupBox2
             // 
@@ -681,6 +693,8 @@
         private System.Windows.Forms.TextBox consoleBox;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog2;
+        private System.Windows.Forms.OpenFileDialog openFileDialog2;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button btn_erase;
         private System.Windows.Forms.Button btn_erase28;

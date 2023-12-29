@@ -106,13 +106,14 @@ namespace flashkit_md
                 Device.setDelay(1);
                 string rom_name = Cart.getRomName();
                 rom_name += ".srm";
-                saveFileDialog1.FileName = rom_name;
-                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                saveFileDialog2.FileName = rom_name;
+                if (saveFileDialog2.ShowDialog() == DialogResult.OK)
                 {
                     consWriteLine("-----------------------------------------------------");
-                    ram_size = Cart.getRamSize();
+                    if (cb_rd_max.Checked) ram_size = 131072;
+                    else ram_size = Cart.getRamSize();
                     if (ram_size == 0) throw new Exception("RAM is not detected");
-                    consWriteLine("Read RAM to " + saveFileDialog1.FileName);
+                    consWriteLine("Read RAM to " + saveFileDialog2.FileName);
                     if (ram_size < 1024)
                     {
                         consWriteLine("RAM size : " + ram_size + "B");
@@ -126,7 +127,7 @@ namespace flashkit_md
                     ram = new byte[ram_size * 2];
                     Device.read(ram, 0, ram.Length);
 
-                    FileStream f = File.OpenWrite(saveFileDialog1.FileName);
+                    FileStream f = File.OpenWrite(saveFileDialog2.FileName);
                     f.Write(ram, 0, ram.Length);
                     f.Close();
                     printMD5(ram);
@@ -222,12 +223,12 @@ namespace flashkit_md
                 Device.connect();
                 Device.setDelay(1);
 
-                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                if (openFileDialog2.ShowDialog() == DialogResult.OK)
                 {
                     consWriteLine("-----------------------------------------------------");
                     consWriteLine("Write RAM...");
                     this.Update();
-                    FileStream f = File.OpenRead(openFileDialog1.FileName);
+                    FileStream f = File.OpenRead(openFileDialog2.FileName);
                     ram = new byte[f.Length];
                     f.Read(ram, 0, ram.Length);
                     f.Close();

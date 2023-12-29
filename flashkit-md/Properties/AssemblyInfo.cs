@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Extended version")]
 [assembly: AssemblyCompany("MiGeRA's System")]
 [assembly: AssemblyProduct("flashkit-md-plus")]
-[assembly: AssemblyCopyright("Copyright © 2014 krikzz & 2021-2022 MiGeRA's System")]
+[assembly: AssemblyCopyright("Copyright © 2014 krikzz & 2021-2024 MiGeRA's System")]
 [assembly: AssemblyTrademark("flashkit-md")]
 [assembly: AssemblyCulture("")]
 
