@@ -79,6 +79,10 @@
             this.btn_sram_en = new System.Windows.Forms.Button();
             this.btn_sel_2nd = new System.Windows.Forms.Button();
             this.btn_sel_1st = new System.Windows.Forms.Button();
+            this.groupBox10 = new System.Windows.Forms.GroupBox();
+            this.btn_clr_sram = new System.Windows.Forms.Button();
+            this.btn_wr_sram = new System.Windows.Forms.Button();
+            this.btn_rd_sram = new System.Windows.Forms.Button();
             this.i32tb_page = new flashkit_md.Int32TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -90,6 +94,7 @@
             this.groupBox7.SuspendLayout();
             this.groupBox8.SuspendLayout();
             this.groupBox9.SuspendLayout();
+            this.groupBox10.SuspendLayout();
             this.SuspendLayout();
             // 
             // btn_rd_rom
@@ -183,7 +188,7 @@
             this.consoleBox.Name = "consoleBox";
             this.consoleBox.ReadOnly = true;
             this.consoleBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.consoleBox.Size = new System.Drawing.Size(475, 358);
+            this.consoleBox.Size = new System.Drawing.Size(475, 264);
             this.consoleBox.TabIndex = 4;
             // 
             // saveFileDialog1
@@ -628,6 +633,50 @@
             this.btn_sel_1st.UseVisualStyleBackColor = false;
             this.btn_sel_1st.Click += new System.EventHandler(this.btn_sel_1st_Click);
             // 
+            // groupBox10
+            // 
+            this.groupBox10.Controls.Add(this.btn_clr_sram);
+            this.groupBox10.Controls.Add(this.btn_wr_sram);
+            this.groupBox10.Controls.Add(this.btn_rd_sram);
+            this.groupBox10.Location = new System.Drawing.Point(238, 282);
+            this.groupBox10.Name = "groupBox10";
+            this.groupBox10.Size = new System.Drawing.Size(217, 88);
+            this.groupBox10.TabIndex = 23;
+            this.groupBox10.TabStop = false;
+            this.groupBox10.Text = "Direct r/w access to Static RAM array (etc. Mega RAM-Cart) Custom DIY 4 MB";
+            // 
+            // btn_clr_sram
+            // 
+            this.btn_clr_sram.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.btn_clr_sram.Enabled = false;
+            this.btn_clr_sram.Location = new System.Drawing.Point(146, 31);
+            this.btn_clr_sram.Name = "btn_clr_sram";
+            this.btn_clr_sram.Size = new System.Drawing.Size(64, 50);
+            this.btn_clr_sram.TabIndex = 5;
+            this.btn_clr_sram.Text = "Test && Clear SRAM";
+            this.btn_clr_sram.UseVisualStyleBackColor = false;
+            this.btn_clr_sram.Visible = false;
+            // 
+            // btn_wr_sram
+            // 
+            this.btn_wr_sram.Location = new System.Drawing.Point(76, 31);
+            this.btn_wr_sram.Name = "btn_wr_sram";
+            this.btn_wr_sram.Size = new System.Drawing.Size(64, 50);
+            this.btn_wr_sram.TabIndex = 2;
+            this.btn_wr_sram.Text = "Write SRAM";
+            this.btn_wr_sram.UseVisualStyleBackColor = true;
+            this.btn_wr_sram.Click += new System.EventHandler(this.btn_wr_sram_Click);
+            // 
+            // btn_rd_sram
+            // 
+            this.btn_rd_sram.Location = new System.Drawing.Point(6, 31);
+            this.btn_rd_sram.Name = "btn_rd_sram";
+            this.btn_rd_sram.Size = new System.Drawing.Size(64, 50);
+            this.btn_rd_sram.TabIndex = 1;
+            this.btn_rd_sram.Text = "Read SRAM";
+            this.btn_rd_sram.UseVisualStyleBackColor = true;
+            this.btn_rd_sram.Click += new System.EventHandler(this.btn_rd_sram_Click);
+            // 
             // i32tb_page
             // 
             this.i32tb_page.Location = new System.Drawing.Point(238, 470);
@@ -643,6 +692,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(725, 555);
+            this.Controls.Add(this.groupBox10);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
@@ -677,6 +727,7 @@
             this.groupBox7.ResumeLayout(false);
             this.groupBox8.ResumeLayout(false);
             this.groupBox9.ResumeLayout(false);
+            this.groupBox10.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -735,6 +786,10 @@
         private System.Windows.Forms.Button btn_sel_1st;
         private System.Windows.Forms.Button btn_sram_dis;
         private System.Windows.Forms.Button btn_sram_en;
+        private System.Windows.Forms.GroupBox groupBox10;
+        private System.Windows.Forms.Button btn_clr_sram;
+        private System.Windows.Forms.Button btn_wr_sram;
+        private System.Windows.Forms.Button btn_rd_sram;
     }
 }
 

@@ -2003,7 +2003,7 @@ namespace flashkit_md
                 Device.setDelay(1);
 
                 consWriteLine("-----------------------------------------------------");
-                consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008)&0x00FF).ToString("G2"));
+                consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
                 //Device.writeWord(0xA13002, 0x0020);
                 Device.writeWord(0xA1300A, 1);
 
@@ -2028,7 +2028,7 @@ namespace flashkit_md
                 consWriteLine("-----------------------------------------------------");
                 consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
                 Device.writeWord(0xA13002, 0x0080);
-                
+
                 consWriteLine("SRAM connect activated  ...");
                 consWriteLine("OK");
 
@@ -2061,6 +2061,149 @@ namespace flashkit_md
             }
             Device.disconnect();
         }
+
+        private void btn_rd_sram_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int rom_max = 4194304;
+                int block_size = 32768;
+                Device.connect();
+                Device.setDelay(1);
+                string rom_name = Cart.getRomName();
+                rom_name += ".bin";
+                saveFileDialog1.FileName = rom_name;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    /*
+                    if (cb_rd_max.Checked) rom_size = rom_max; // 4194304
+                    else rom_size = Cart.getRomSize();
+                    if (rom_size > rom_max) rom_size = rom_max; //*
+                    */
+                    rom_size = rom_max; // 4194304
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    rom = new byte[rom_size];
+
+                    consWriteLine("Read SRAM to " + saveFileDialog1.FileName);
+                    consWriteLine("SRAM size : " + rom_size / 1024 + "K");
+
+                    Device.setAddr(0);
+                    DateTime t = DateTime.Now;
+                    for (int i = 0; i < rom_size; i += block_size)
+                    {
+                        //Device.read(rom, i, block_size);
+                        Device.read(rom, i, i + block_size <= rom_size ? block_size : rom_size - (rom_size / block_size) * block_size);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    double time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    FileStream f = File.OpenWrite(saveFileDialog1.FileName);
+                    f.Write(rom, 0, rom.Length);
+                    f.Close();
+
+                    printMD5(rom);
+
+                    consWriteLine("OK");
+                }
+
+            }
+            catch (Exception x)
+            {
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+        
+        private void btn_wr_sram_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                //int block_len = 4096;
+                int block_len = 32768;
+                double time;
+                DateTime t;
+                Device.connect();
+                Device.setDelay(1);
+
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    FileStream f = File.OpenRead(openFileDialog1.FileName);
+                    rom_size = (int)f.Length;
+                    if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
+                    if (rom_size > 0x400000) rom_size = 0x400000;
+                    rom = new byte[rom_size];
+                    f.Read(rom, 0, rom_size);
+                    f.Close();
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = rom_size;
+                    consWriteLine("SRAM write...");
+                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    //consWriteLine("Wait ... (~25sec/MB average)");
+
+                    Device.setAddr(0);
+                    t = DateTime.Now;
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        Device.write(rom, i, block_len);
+                        //Device.sramProgBlock(rom, i, block_len);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                    progressBar1.Value = 0;
+
+                    consWriteLine("SRAM verify...");
+                    byte[] rom2 = new byte[rom.Length];
+                    Device.setAddr(0);
+
+                    for (int i = 0; i < rom_size; i += block_len)
+                    {
+                        Device.read(rom2, i, block_len);
+                        progressBar1.Value = i;
+                        this.Update();
+                    }
+                    progressBar1.Value = rom_size;
+                    for (int i = 0; i < rom_size; i++)
+                    {
+                        if (rom[i] != rom2[i]) throw new Exception("Verify error at 0x" + i.ToString("X6"));
+                    }
+
+                    printMD5(rom2);
+
+                    consWriteLine("OK");
+
+                }
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    // No action required to reset ...
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
+
 
     } // End of class Form
 } // End of namespace flashkit_md
