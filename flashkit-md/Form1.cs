@@ -2069,7 +2069,7 @@ namespace flashkit_md
                 byte[] rom;
                 int rom_size;
                 int rom_max = 4194304;
-                int block_size = 32768;
+                int block_size = 16384;
                 Device.connect();
                 Device.setDelay(1);
                 string rom_name = Cart.getRomName();
@@ -2090,7 +2090,7 @@ namespace flashkit_md
                     rom = new byte[rom_size];
 
                     consWriteLine("Read SRAM to " + saveFileDialog1.FileName);
-                    consWriteLine("SRAM size : " + rom_size / 1024 + "K");
+                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
 
                     Device.setAddr(0);
                     DateTime t = DateTime.Now;
@@ -2122,7 +2122,7 @@ namespace flashkit_md
             Device.disconnect();
 
         }
-        
+
         private void btn_wr_sram_Click(object sender, EventArgs e)
         {
             try
@@ -2130,7 +2130,7 @@ namespace flashkit_md
                 byte[] rom;
                 int rom_size;
                 //int block_len = 4096;
-                int block_len = 32768;
+                int block_len = 16384;
                 double time;
                 DateTime t;
                 Device.connect();
@@ -2149,17 +2149,17 @@ namespace flashkit_md
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
-                    consWriteLine("SRAM write...");
+                    consWriteLine("SRAM write from " + openFileDialog1.FileName);
                     consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
-                    //consWriteLine("Wait ... (~25sec/MB average)");
+                    //consWriteLine("Wait ... (~10sec/MB average)");
 
                     Device.setAddr(0);
                     t = DateTime.Now;
 
                     for (int i = 0; i < rom_size; i += block_len)
                     {
-                        Device.write(rom, i, block_len);
-                        //Device.sramProgBlock(rom, i, block_len);
+                        //Device.write(rom, i, block_len);
+                        Device.sramProgBlock(rom, i, block_len);
                         progressBar1.Value = i;
                         this.Update();
                     }

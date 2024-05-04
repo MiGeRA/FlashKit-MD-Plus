@@ -1181,21 +1181,15 @@ namespace flashkit_md
         public static void sramProgBlock(byte[] buff, int offset, int len)
         {           
             len /= 2;
-            byte[] cmd = new byte[11 * len];
+            byte[] cmd = new byte[5 * len];
 
-            for (int i = 0; i < cmd.Length; i += 11)
+            for (int i = 0; i < cmd.Length; i += 5)
             {
-                cmd[0 + i] = CMD_WR | PAR_SINGLE | PAR_INC;
-                cmd[1 + i] = buff[offset++];
-                cmd[2 + i] = buff[offset++];
-                cmd[3 + i] = CMD_DELAY;
-                cmd[4 + i] = 1; // 1pts ~0.5uS, summ ~10uS delay replace getting status 
-                cmd[5 + i] = CMD_DELAY;
-                cmd[6 + i] = 1;
-                cmd[7 + i] = CMD_DELAY;
-                cmd[8 + i] = 1;
-                cmd[9 + i] = CMD_DELAY;
-                cmd[10 + i] = 1;
+                cmd[0 + i] = CMD_DELAY;
+                cmd[1 + i] = 1; // 1pts ~0.5uS, summ ~10uS delay replace getting status 
+                cmd[2 + i] = CMD_WR | PAR_SINGLE | PAR_INC;
+                cmd[3 + i] = buff[offset++];
+                cmd[4 + i] = buff[offset++];
             }
 
             port.Write(cmd, 0, cmd.Length);
