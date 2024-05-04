@@ -42,19 +42,19 @@ namespace flashkit_md
                 Device.connect();
                 Device.setDelay(1);
 
-                consWriteLine("Connected to: " + Device.getPortName());
+                consWriteLine("Connected to : " + Device.getPortName());
 
                 Device.flash29lReset();
-                if (Device.flash29lIdentMfr() != 0xffff) consWriteLine("Manifacture ID: " + Device.flash29lIdentMfr().ToString("X4"));
-                else consWriteLine("Manifacture ID: N/A");
-                if (Device.flash29lIdentDev() != 0xffff) consWriteLine("Device ID: " + Device.flash29lIdentDev().ToString("X4"));
-                else consWriteLine("Device ID: N/A");
+                if (Device.flash29lIdentMfr() != 0xffff) consWriteLine("Manifacture ID : " + Device.flash29lIdentMfr().ToString("X4"));
+                else consWriteLine("Manifacture ID : N/A");
+                if (Device.flash29lIdentDev() != 0xffff) consWriteLine("Device ID : " + Device.flash29lIdentDev().ToString("X4"));
+                else consWriteLine("Device ID : N/A");
                 Device.flash29lReset();
 
                 //Device.flash29lvReset();
-                //if (Device.flash29lvIdentMfr() != 0xffff) consWriteLine("Manifacture ID: " + Device.flash29lvIdentMfr().ToString("X4"));
-                //if (Device.flash29lvIdentDev() != 0xffff) consWriteLine("Device ID: " + Device.flash29lvIdentDev().ToString("X4"));
-                //if (Device.flash29lvFactLock() != 0xffff) consWriteLine("Factory Lock: " + Device.flash29lvFactLock().ToString("X4"));
+                //if (Device.flash29lvIdentMfr() != 0xffff) consWriteLine("Manifacture ID : " + Device.flash29lvIdentMfr().ToString("X4"));
+                //if (Device.flash29lvIdentDev() != 0xffff) consWriteLine("Device ID : " + Device.flash29lvIdentDev().ToString("X4"));
+                //if (Device.flash29lvFactLock() != 0xffff) consWriteLine("Factory Lock : " + Device.flash29lvFactLock().ToString("X4"));
                 //Device.flash29lvReset();
 
                 consWriteLine("-----------------------------------------------------");
@@ -183,9 +183,9 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     //int time = (int)(DateTime.Now.Ticks - t.Ticks);
-                    //consWriteLine("Time: " + time / 10000);
+                    //consWriteLine("Time : " + time / 10000);
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -209,7 +209,7 @@ namespace flashkit_md
         {
             MD5 hash = MD5.Create();
             byte[] hash_data = hash.ComputeHash(buff);
-            consWriteLine("MD5: " + BitConverter.ToString(hash_data));
+            consWriteLine("MD5 : " + BitConverter.ToString(hash_data));
         }
 
 
@@ -226,7 +226,7 @@ namespace flashkit_md
                 if (openFileDialog2.ShowDialog() == DialogResult.OK)
                 {
                     consWriteLine("-----------------------------------------------------");
-                    consWriteLine("Write RAM...");
+                    consWriteLine("Write RAM ...");
                     this.Update();
                     FileStream f = File.OpenRead(openFileDialog2.FileName);
                     ram = new byte[f.Length];
@@ -244,7 +244,7 @@ namespace flashkit_md
                     Device.writeWord(0xA13000, 0xffff);
                     Device.setAddr(0x200000);
                     Device.write(ram, 0, copy_len);
-                    consWriteLine("Verify...");
+                    consWriteLine("Verify ...");
                     this.Update();
                     byte[] ram2 = new byte[copy_len];
                     Device.setAddr(0x200000);
@@ -299,7 +299,7 @@ namespace flashkit_md
                     {
                         progressBar1.Value = 0;
                         progressBar1.Maximum = rom_size;
-                        consWriteLine("Flash erase...");
+                        consWriteLine("Flash erase ...");
                         Device.flashResetByPass();
                         t = DateTime.Now;
 
@@ -310,7 +310,7 @@ namespace flashkit_md
                             this.Update();
                         }
                         time = (double)(DateTime.Now.Ticks - t.Ticks);
-                        consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                        consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     }
                     else
                     {
@@ -319,7 +319,7 @@ namespace flashkit_md
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
-                    consWriteLine("Flash write...");
+                    consWriteLine("Flash write ...");
                     Device.flashUnlockBypass();
                     Device.setAddr(0);
                     t = DateTime.Now;
@@ -331,11 +331,11 @@ namespace flashkit_md
                         this.Update();
                     }
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     progressBar1.Value = 0;
                     Device.flashResetByPass();
 
-                    consWriteLine("Flash verify...");
+                    consWriteLine("Flash verify ...");
                     byte[] rom2 = new byte[rom.Length];
 
                     Device.setAddr(0);
@@ -382,7 +382,7 @@ namespace flashkit_md
                 consWriteLine("-----------------------------------------------------");
                 progressBar1.Value = 0;
                 progressBar1.Maximum = rom_size;
-                consWriteLine("Flash erase...");
+                consWriteLine("Flash erase ...");
                 consWriteLine("Wait ... (~20-40sec average)");
                 Device.flashResetByPass();
                 DateTime t = DateTime.Now;
@@ -400,13 +400,13 @@ namespace flashkit_md
                 */
 
                 double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                 consWriteLine("OK");
 
                 if (cb_erase_chk.Checked)
                 {
                     Device.flashResetByPass();
-                    consWriteLine("Blank verify...");
+                    consWriteLine("Blank verify ...");
                     rom = new byte[rom_size];
                     Device.setAddr(0);
 
@@ -477,7 +477,7 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -530,7 +530,7 @@ namespace flashkit_md
                         progressBar1.Maximum = rom_size;
                         progressBar1.Value = 0;
                         progressBar1.Step = rom_size / 5;
-                        consWriteLine("Flash erase...");
+                        consWriteLine("Flash erase ...");
 
                         for (int i = 0; i < rom_size; i += 131072)
                         {
@@ -571,9 +571,9 @@ namespace flashkit_md
                     progressBar1.Maximum = rom_size;
                     progressBar1.Value = 0;
                     progressBar1.Step = rom_size / 5;
-                    consWriteLine("Flash write...");
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
-                    consWriteLine("Wait... (~10sec max)");
+                    consWriteLine("Flash write ...");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Wait ... (~10sec max)");
                     Device.setAddr(0);
                     DateTime t = DateTime.Now;
 
@@ -595,11 +595,11 @@ namespace flashkit_md
                     */
 
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     //printMD5(rom); // Send data checksumm
 
                     progressBar1.Value = 0;
-                    consWriteLine("Flash verify...");
+                    consWriteLine("Flash verify ...");
                     byte[] rom2 = new byte[rom.Length];
                     Device.flash28Reset();
                     Device.setAddr(0);
@@ -618,7 +618,7 @@ namespace flashkit_md
                     }
 
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     //printMD5(rom); // Read data checksumm
 
                     consWriteLine("OK");
@@ -660,7 +660,7 @@ namespace flashkit_md
                 progressBar1.Maximum = rom_size;
                 progressBar1.Value = 0;
                 progressBar1.Step = rom_size / 5;
-                consWriteLine("Flash erase...");
+                consWriteLine("Flash erase ...");
 
                 for (int i = 0; i < rom_size; i += 131072)
                 {
@@ -691,7 +691,7 @@ namespace flashkit_md
 
                 if (cb_erase_chk.Checked)
                 {
-                    consWriteLine("Blank verify...");
+                    consWriteLine("Blank verify ...");
                     rom = new byte[rom_size];
                     Device.flash28Reset();
                     Device.setAddr(0);
@@ -780,7 +780,7 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -841,7 +841,7 @@ namespace flashkit_md
                     {
                         progressBar1.Value = 0;
                         progressBar1.Maximum = rom_size;
-                        consWriteLine("Flash erase...");
+                        consWriteLine("Flash erase ...");
                         consWriteLine("Wait ... (~0.2-2sec average)");
 
                         Device.flash29lReset();
@@ -850,7 +850,7 @@ namespace flashkit_md
                         Device.flash29lEraseAll();
 
                         time = (double)(DateTime.Now.Ticks - t.Ticks);
-                        consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                        consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     }
                     else
                     {
@@ -859,8 +859,8 @@ namespace flashkit_md
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
-                    consWriteLine("Flash write...");
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB or " + (rom_size < 131072 ? 1 : (rom_size - (rom_size / 131072) * 131072) == 0 ? rom_size / 131072 : (rom_size / 131072) + 1).ToString("G") + " Sectors");
+                    consWriteLine("Flash write ...");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB or " + (rom_size < 131072 ? 1 : (rom_size - (rom_size / 131072) * 131072) == 0 ? rom_size / 131072 : (rom_size / 131072) + 1).ToString("G") + " Sectors");
                     consWriteLine("Wait ... (~40sec/MB average)");
                     Device.flash29lReset();
                     Device.setAddr(0);
@@ -880,11 +880,11 @@ namespace flashkit_md
                         */
                     }
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     //printMD5(rom); // Send data checksumm
 
                     progressBar1.Value = 0;
-                    consWriteLine("Reading for test...");
+                    consWriteLine("Reading for test ...");
                     Device.flash29lReset();
                     Device.setAddr(0);
                     t = DateTime.Now;
@@ -897,10 +897,10 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     progressBar1.Value = 0;
-                    consWriteLine("Verify (and fix)...");
+                    consWriteLine("Verify (and fix) ...");
                     t = DateTime.Now;
 
                     int aftb = 0; // afterburned page quantity
@@ -933,9 +933,9 @@ namespace flashkit_md
                         }
                     }
                     progressBar1.Value = rom_size;
-                    consWriteLine("Has been completed afterburn: " + (aftb * 100 / (rom_size / block_len)) + "% pages needed fixing (" + aftb + " pages)");
+                    consWriteLine("Has been completed afterburn : " + (aftb * 100 / (rom_size / block_len)) + "% pages needed fixing (" + aftb + " pages)");
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     //printMD5(rom2); // Read data checksumm
                     consWriteLine("OK");
@@ -969,8 +969,8 @@ namespace flashkit_md
 
                 Device.flash29lReset();
 
-                //consWriteLine("Manifacture ID: " + Device.flash29lIdentMfr().ToString("X4"));
-                //consWriteLine("Device ID: " + Device.flash29lIdentDev().ToString("X4"));
+                //consWriteLine("Manifacture ID : " + Device.flash29lIdentMfr().ToString("X4"));
+                //consWriteLine("Device ID : " + Device.flash29lIdentDev().ToString("X4"));
 
                 if (cb_ident_chk.Checked)
                 {
@@ -983,7 +983,7 @@ namespace flashkit_md
                 progressBar1.Value = 0;
                 progressBar1.Maximum = rom_size;
 
-                consWriteLine("Flash erase...");
+                consWriteLine("Flash erase ...");
                 consWriteLine("Wait ... (~0.2-2sec average)");
                 Device.flash29lReset();
                 DateTime t = DateTime.Now; // start time
@@ -992,12 +992,12 @@ namespace flashkit_md
                 //for (int i = 0; i < 32; i++) Device.flash29lErase(i * sec_size);
 
                 double time = (double)(DateTime.Now.Ticks - t.Ticks); // finish time
-                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                 consWriteLine("OK");
 
                 if (cb_erase_chk.Checked)
                 {
-                    consWriteLine("Blank verify...");
+                    consWriteLine("Blank verify ...");
                     rom = new byte[rom_size];
                     Device.flash29lReset();
                     Device.setAddr(0);
@@ -1022,7 +1022,7 @@ namespace flashkit_md
                         if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                     }
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     consWriteLine("OK");
                 }
 
@@ -1052,8 +1052,8 @@ namespace flashkit_md
 
                 Device.flash29lvReset();
 
-                //consWriteLine("Manifacture ID: " + Device.flash29lvIdentMfr().ToString("X4"));
-                //consWriteLine("Device ID: " + Device.flash29lvIdentDev().ToString("X4"));
+                //consWriteLine("Manifacture ID : " + Device.flash29lvIdentMfr().ToString("X4"));
+                //consWriteLine("Device ID : " + Device.flash29lvIdentDev().ToString("X4"));
 
                 if (cb_ident_chk.Checked)
                 {
@@ -1065,7 +1065,7 @@ namespace flashkit_md
                 progressBar1.Value = 0;
                 progressBar1.Maximum = rom_size;
 
-                consWriteLine("Flash erase...");
+                consWriteLine("Flash erase ...");
                 consWriteLine("Wait ... (~25sec average)");
                 Device.flash29lvReset();
                 DateTime t = DateTime.Now; // start time
@@ -1073,12 +1073,12 @@ namespace flashkit_md
                 Device.flash29lvEraseAll();
 
                 double time = (double)(DateTime.Now.Ticks - t.Ticks); // finish time
-                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                 consWriteLine("OK");
 
                 if (cb_erase_chk.Checked)
                 {
-                    consWriteLine("Blank verify...");
+                    consWriteLine("Blank verify ...");
                     rom = new byte[rom_size];
                     Device.flash29lvReset();
                     Device.setAddr(0);
@@ -1103,7 +1103,7 @@ namespace flashkit_md
                         if (rom[i] != 0xff) throw new Exception("Verify error at 0x" + i.ToString("X6"));
                     }
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     consWriteLine("OK");
                 }
 
@@ -1164,13 +1164,13 @@ namespace flashkit_md
 
                         if (rom_size > 0x300000) // if above 3/4 need erase - fast do complete full chip erase
                         {
-                            consWriteLine("Flash erase full...");
+                            consWriteLine("Flash erase full ...");
                             consWriteLine("Wait ... (~25sec average)");
                             Device.flash29lvEraseAll();
                         }
                         else
                         {
-                            consWriteLine("Flash erase partial...");
+                            consWriteLine("Flash erase partial ...");
                             if (Device.flash29lvIdentDev() == 0x22A8) // Device with Bottom Boot part
                             {
                                 consWriteLine("Erase small sectors ...");
@@ -1198,7 +1198,7 @@ namespace flashkit_md
                         }
 
                         time = (double)(DateTime.Now.Ticks - t.Ticks); // finish time
-                        consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                        consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     }
                     else
                     {
@@ -1207,8 +1207,8 @@ namespace flashkit_md
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
-                    consWriteLine("Flash write...");
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Flash write ...");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB");
                     consWriteLine("Wait ... (~25sec/MB average)");
 
                     Device.flash29lvReset();
@@ -1224,11 +1224,11 @@ namespace flashkit_md
                         this.Update();
                     }
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     progressBar1.Value = 0;
 
-                    consWriteLine("Flash verify...");
+                    consWriteLine("Flash verify ...");
                     byte[] rom2 = new byte[rom.Length];
                     Device.flash29lvReset();
                     Device.setAddr(0);
@@ -1301,7 +1301,7 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -1338,7 +1338,7 @@ namespace flashkit_md
                 progressBar1.Maximum = rom_size;
                 progressBar1.Value = 0;
                 progressBar1.Step = rom_size / 3;
-                consWriteLine("Flash erase...");
+                consWriteLine("Flash erase ...");
 
                 for (int i = 0; i < rom_size; i += 131072)
                 {
@@ -1368,7 +1368,7 @@ namespace flashkit_md
                 progressBar1.Value = rom_size;
 
                 Device.flash28Reset();
-                consWriteLine("Blank verify...");
+                consWriteLine("Blank verify ...");
                 rom = new byte[rom_size];
                 Device.setAddr(0);
 
@@ -1438,7 +1438,7 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -1491,7 +1491,7 @@ namespace flashkit_md
                         progressBar1.Maximum = rom_size;
                         progressBar1.Value = 0;
                         progressBar1.Step = rom_size / 3;
-                        consWriteLine("Flash erase...");
+                        consWriteLine("Flash erase ...");
 
                         for (int i = 0; i < rom_size; i += 131072)
                         {
@@ -1532,9 +1532,9 @@ namespace flashkit_md
                     progressBar1.Maximum = rom_size;
                     progressBar1.Value = 0;
                     progressBar1.Step = rom_size / 3;
-                    consWriteLine("Flash write...");
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
-                    consWriteLine("Wait... (~10sec max)");
+                    consWriteLine("Flash write ...");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Wait ... (~10sec max)");
                     Device.setAddr(0);
                     DateTime t = DateTime.Now;
 
@@ -1556,11 +1556,11 @@ namespace flashkit_md
                     */
 
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     //printMD5(rom); // Send data checksumm
 
                     progressBar1.Value = 0;
-                    consWriteLine("Flash verify...");
+                    consWriteLine("Flash verify ...");
                     byte[] rom2 = new byte[rom.Length];
                     Device.flash28Reset();
                     Device.setAddr(0);
@@ -1579,7 +1579,7 @@ namespace flashkit_md
                     }
 
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     //printMD5(rom); // Read data checksumm
 
                     consWriteLine("OK");
@@ -1608,7 +1608,7 @@ namespace flashkit_md
                 Device.setDelay(1);
 
                 consWriteLine("-----------------------------------------------------");
-                consWriteLine("Switch to Cart in slot...");
+                consWriteLine("Switch to Cart in slot ...");
                 consWriteLine("");
                 consWriteLine("All two dip-switches must state is 'Off' before click this button;");
                 consWriteLine("Turn them to 'Off', if it's not and click this button again.");
@@ -1645,17 +1645,17 @@ namespace flashkit_md
                 Device.connect();
                 Device.setDelay(1);
                 consWriteLine("-----------------------------------------------------");
-                consWriteLine("Testing RAM...");
+                consWriteLine("Testing RAM ...");
 
                 progressBar1.Value = 0;
                 progressBar1.Maximum = rom_size;
                 rom = new byte[rom_size];
 
                 for (int i = 0; i < rom_size; i++) rom[i] = tst_val;
-                consWriteLine("Checksum of write-pattern:");
+                consWriteLine("Checksum of write-pattern :");
                 printMD5(rom);
 
-                consWriteLine("Writing...");
+                consWriteLine("Writing ...");
                 Device.setAddr(0x80000);
                 t = DateTime.Now;
                 for (int i = 0; i < rom_size; i += block_size)
@@ -1667,14 +1667,14 @@ namespace flashkit_md
                 }
                 progressBar1.Value = rom_size;
                 time = (double)(DateTime.Now.Ticks - t.Ticks);
-                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                 progressBar1.Value = 0;
                 progressBar1.Maximum = rom_size;
 
                 for (int i = 0; i < rom_size; i++) rom[i] = 0x00;
 
-                consWriteLine("Reading...");
+                consWriteLine("Reading ...");
                 Device.setAddr(0x80000);
                 t = DateTime.Now;
                 for (int i = 0; i < rom_size; i += block_size)
@@ -1686,11 +1686,11 @@ namespace flashkit_md
                 }
                 progressBar1.Value = rom_size;
                 time = (double)(DateTime.Now.Ticks - t.Ticks);
-                consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                 for (int i = 0; i < rom_size; i = i + 2) rom[i] = tst_val;
                 //for (int i = 0; i < rom_size; i++) consWrite(rom[i].ToString("X2"));
-                consWriteLine("Checksum of readed data:");
+                consWriteLine("Checksum of readed data :");
                 printMD5(rom);
 
                 consWriteLine("If checksums is equal then all is OK");
@@ -1779,7 +1779,7 @@ namespace flashkit_md
 
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom_size);
@@ -1831,9 +1831,9 @@ namespace flashkit_md
                     progressBar1.Maximum = rom_size;
                     progressBar1.Value = 0;
                     progressBar1.Step = rom_size / block_len;
-                    consWriteLine("Data transfer...");
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
-                    consWriteLine("Wait... (~20sec max)");
+                    consWriteLine("Data transfer ...");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Wait ... (~20sec max)");
 
                     DateTime t = DateTime.Now;
 
@@ -1847,7 +1847,7 @@ namespace flashkit_md
                     }
 
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
                     printMD5(rom); // Send data checksumm
 
                     consWriteLine("OK");
@@ -1952,7 +1952,7 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -2029,7 +2029,7 @@ namespace flashkit_md
                 consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
                 Device.writeWord(0xA13002, 0x0080);
 
-                consWriteLine("SRAM connect activated  ...");
+                consWriteLine("SRAM connect activated ...");
                 consWriteLine("OK");
 
             }
@@ -2051,7 +2051,7 @@ namespace flashkit_md
                 consWriteLine("FPGA Core version : " + (Device.readWord(0xA13008) & 0x00FF).ToString("G2"));
                 Device.writeWord(0xA13002, 0x0000);
 
-                consWriteLine("SRAM connect deactivated  ...");
+                consWriteLine("SRAM connect deactivated ...");
                 consWriteLine("OK");
 
             }
@@ -2090,7 +2090,7 @@ namespace flashkit_md
                     rom = new byte[rom_size];
 
                     consWriteLine("Read SRAM to " + saveFileDialog1.FileName);
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB");
 
                     Device.setAddr(0);
                     DateTime t = DateTime.Now;
@@ -2103,7 +2103,7 @@ namespace flashkit_md
                     }
                     progressBar1.Value = rom_size;
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     FileStream f = File.OpenWrite(saveFileDialog1.FileName);
                     f.Write(rom, 0, rom.Length);
@@ -2150,7 +2150,7 @@ namespace flashkit_md
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
                     consWriteLine("SRAM write from " + openFileDialog1.FileName);
-                    consWriteLine("Size: " + (rom_size / 1024).ToString("G") + "KB");
+                    consWriteLine("Size : " + (rom_size / 1024).ToString("G") + "KB");
                     //consWriteLine("Wait ... (~10sec/MB average)");
 
                     Device.setAddr(0);
@@ -2164,11 +2164,11 @@ namespace flashkit_md
                         this.Update();
                     }
                     time = (double)(DateTime.Now.Ticks - t.Ticks);
-                    consWriteLine("Time: " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
                     progressBar1.Value = 0;
 
-                    consWriteLine("SRAM verify...");
+                    consWriteLine("SRAM verify ...");
                     byte[] rom2 = new byte[rom.Length];
                     Device.setAddr(0);
 
