@@ -1885,9 +1885,7 @@ namespace flashkit_md
                 Device.writeWord(0xA13002, 0x0080);
                 Device.writeWord(0xA1300A, 1);
 
-                int sel_pg;
-                sel_pg = int.Parse(i32tb_page.Text); // String to Int
-                consWriteLine(sel_pg.ToString("G")); // Int to String               
+                int sel_pg = 0;
 
                 /*
                 Device.writeWord(0xA130F0, 0x8000);
@@ -1923,6 +1921,7 @@ namespace flashkit_md
                 Device.setAddr(0x20460);
                 Device.setAddr(0x20490);
                 */
+
                 string rom_name = Cart.getRomName();
                 rom_name += ".bin";
                 saveFileDialog1.FileName = rom_name;
@@ -2069,7 +2068,7 @@ namespace flashkit_md
                 byte[] rom;
                 int rom_size;
                 int rom_max = 4194304;
-                int block_size = 16384;
+                int block_size = 32768;
                 Device.connect();
                 Device.setDelay(1);
                 string rom_name = Cart.getRomName();
@@ -2130,7 +2129,7 @@ namespace flashkit_md
                 byte[] rom;
                 int rom_size;
                 //int block_len = 4096;
-                int block_len = 16384;
+                int block_len = 32768;
                 double time;
                 DateTime t;
                 Device.connect();
@@ -2158,8 +2157,8 @@ namespace flashkit_md
 
                     for (int i = 0; i < rom_size; i += block_len)
                     {
-                        //Device.write(rom, i, block_len);
-                        Device.sramProgBlock(rom, i, block_len);
+                        Device.write(rom, i, block_len);
+                        //Device.sramProgBlock(rom, i, block_len);
                         progressBar1.Value = i;
                         this.Update();
                     }

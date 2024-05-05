@@ -83,7 +83,6 @@
             this.btn_clr_sram = new System.Windows.Forms.Button();
             this.btn_wr_sram = new System.Windows.Forms.Button();
             this.btn_rd_sram = new System.Windows.Forms.Button();
-            this.i32tb_page = new flashkit_md.Int32TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -677,16 +676,6 @@
             this.btn_rd_sram.UseVisualStyleBackColor = true;
             this.btn_rd_sram.Click += new System.EventHandler(this.btn_rd_sram_Click);
             // 
-            // i32tb_page
-            // 
-            this.i32tb_page.Location = new System.Drawing.Point(238, 470);
-            this.i32tb_page.Margin = new System.Windows.Forms.Padding(2);
-            this.i32tb_page.Name = "i32tb_page";
-            this.i32tb_page.Size = new System.Drawing.Size(41, 20);
-            this.i32tb_page.TabIndex = 19;
-            this.i32tb_page.Text = "1";
-            this.i32tb_page.Visible = false;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -696,7 +685,6 @@
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
-            this.Controls.Add(this.i32tb_page);
             this.Controls.Add(this.btn_rd_page);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.cb_erase_chk);
@@ -722,8 +710,6 @@
             this.groupBox4.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
             this.groupBox6.ResumeLayout(false);
-            this.p_mag16_flash.ResumeLayout(false);
-            this.p_mag16_flash.PerformLayout();
             this.groupBox7.ResumeLayout(false);
             this.groupBox8.ResumeLayout(false);
             this.groupBox9.ResumeLayout(false);
@@ -778,7 +764,6 @@
         private System.Windows.Forms.RadioButton rb_flash_high;
         private System.Windows.Forms.Button btn_wr_stream;
         private System.Windows.Forms.Button btn_rd_page;
-        private Int32TextBox i32tb_page;
         private System.Windows.Forms.GroupBox groupBox7;
         private System.Windows.Forms.GroupBox groupBox8;
         private System.Windows.Forms.GroupBox groupBox9;

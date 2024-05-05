@@ -1186,7 +1186,7 @@ namespace flashkit_md
             for (int i = 0; i < cmd.Length; i += 5)
             {
                 cmd[0 + i] = CMD_DELAY;
-                cmd[1 + i] = 1; // 1pts ~0.5uS, summ ~10uS delay replace getting status 
+                cmd[1 + i] = 2; // 1pts ~0.5uS, summ ~10uS delay replace getting status 
                 cmd[2 + i] = CMD_WR | PAR_SINGLE | PAR_INC;
                 cmd[3 + i] = buff[offset++];
                 cmd[4 + i] = buff[offset++];
