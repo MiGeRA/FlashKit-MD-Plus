@@ -35,20 +35,22 @@ namespace flashkit_md
             consoleBox.Clear();
             consWriteLine("-----------------------------------------------------");
             int ram_size;
+            int flashkit_id;
 
             try
             {
 
-                Device.connect();
-                Device.setDelay(1);
-
+                flashkit_id = Device.connect();
                 consWriteLine("Connected to : " + Device.getPortName());
 
+                consWriteLine("FlashKit `MW ID` : 0x" + flashkit_id.ToString("X4"));
+                Device.setDelay(1);
+
                 Device.flash29lReset();
-                if (Device.flash29lIdentMfr() != 0xffff) consWriteLine("Manifacture ID : " + Device.flash29lIdentMfr().ToString("X4"));
-                else consWriteLine("Manifacture ID : N/A");
-                if (Device.flash29lIdentDev() != 0xffff) consWriteLine("Device ID : " + Device.flash29lIdentDev().ToString("X4"));
-                else consWriteLine("Device ID : N/A");
+                if (Device.flash29lIdentMfr() != 0xffff) consWriteLine("Flash Chip `Manifacture ID` : 0x" + Device.flash29lIdentMfr().ToString("X4"));
+                else consWriteLine("Flash `Chip Manifacture ID` : N/A");
+                if (Device.flash29lIdentDev() != 0xffff) consWriteLine("Flash Chip `Device ID` : 0x" + Device.flash29lIdentDev().ToString("X4"));
+                else consWriteLine("Flash `Chip Device ID` : N/A");
                 Device.flash29lReset();
 
                 //Device.flash29lvReset();
@@ -70,8 +72,7 @@ namespace flashkit_md
                     consWriteLine("RAM size : " + ram_size / 1024 + "K");
                 }
 
-                //consWrite("CART type: ");
-
+                //consWriteLine("SVP Status : 0x" + Device.readWord(0xA15004).ToString("X4"));
 
             }
             catch (Exception x)
@@ -151,6 +152,7 @@ namespace flashkit_md
             {
                 byte[] rom;
                 int rom_size;
+                int rom_max = 4194304 * 2; // 8MB or 64Mb
                 int block_size = 32768;
                 Device.connect();
                 Device.setDelay(1);
@@ -160,9 +162,9 @@ namespace flashkit_md
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
                     consWriteLine("-----------------------------------------------------");
-                    if (cb_rd_max.Checked) rom_size = 4194304;
+                    if (cb_rd_max.Checked) rom_size = rom_max;
                     else rom_size = Cart.getRomSize();
-                    if (rom_size > 4194304) rom_size = 4194304; //*
+                    if (rom_size > rom_max) rom_size = rom_max; //*
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
@@ -182,8 +184,6 @@ namespace flashkit_md
                         this.Update();
                     }
                     progressBar1.Value = rom_size;
-                    //int time = (int)(DateTime.Now.Ticks - t.Ticks);
-                    //consWriteLine("Time : " + time / 10000);
                     double time = (double)(DateTime.Now.Ticks - t.Ticks);
                     consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
 
@@ -290,7 +290,8 @@ namespace flashkit_md
                     FileStream f = File.OpenRead(openFileDialog1.FileName);
                     rom_size = (int)f.Length;
                     if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
-                    if (rom_size > 0x400000) rom_size = 0x400000;
+                    // if (rom_size > 0x400000) rom_size = 0x400000;
+                    if (rom_size > 0x800000) rom_size = 0x800000;
                     rom = new byte[rom_size];
                     f.Read(rom, 0, rom_size);
                     f.Close();
@@ -731,6 +732,7 @@ namespace flashkit_md
             {
                 byte[] rom;
                 int rom_size;
+                int rom_max = 4194304;
                 int block_size = 32768;
                 Device.connect();
                 Device.setDelay(1);
@@ -741,9 +743,9 @@ namespace flashkit_md
                 {
                     consWriteLine("-----------------------------------------------------");
                     Device.flash29lReset();
-                    if (cb_rd_max.Checked) rom_size = 4194304;
+                    if (cb_rd_max.Checked) rom_size = rom_max;
                     else rom_size = Cart.getRomSize();
-                    if (rom_size > 4194304) rom_size = 4194304; //*
+                    if (rom_size > rom_max) rom_size = rom_max; //*
 
                     progressBar1.Value = 0;
                     progressBar1.Maximum = rom_size;
@@ -807,20 +809,26 @@ namespace flashkit_md
                 byte[] rom;
                 byte[] err_rate = new byte[32];
                 int rom_size;
-                int block_len = 256; // portion size by page program of Flash
-                int macro_blk = 16384; // macro portion size by (must by multiple of 256)
+                //int block_len = 256; // portion size by page program of Flash for 29x32xx
+                int block_len = 16; // portion size by page program of Flash for 29x16xx
+                //int macro_blk = 16384; // macro portion size by (must by multiple of 256)
+                int macro_blk = 1024; // macro portion size by (must by multiple of 256)
                 double time;
                 DateTime t;
-                Device.connect();
+                int flashkit_id = Device.connect();
                 Device.setDelay(1);
 
                 Device.flash29lReset();
+
+                Device.writeWord(0xA15006, 0xA); // inactive SVP
 
                 if (cb_ident_chk.Checked)
                 {
                     if (Device.flash29lIdentMfr() != 0xC2) throw new Exception("Device MXIC not found ...");
                     if (Device.flash29lIdentDev() != 0xF9) throw new Exception("Device 29l3211 not found ...");
                     if (Device.flash29lIdentDev() != 0xF8) throw new Exception("Device 29l1611 not found ...");
+                    if (Device.flash29lIdentDev() != 0xF1) throw new Exception("Device 29f1610 not found ...");
+                    if (Device.flash29lIdentDev() != 0xFA) throw new Exception("Device 29f1610A not found ...");
                 }
 
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -868,7 +876,11 @@ namespace flashkit_md
 
                     for (int i = 0; i < rom_size; i += macro_blk)
                     {
-                        Device.flash29lWrite(rom, i, macro_blk); // by macro block
+                        //if (flashkit_id == 0x202) Device.flash29lWriteV2(rom, i, macro_blk); // by macro block
+                        if (flashkit_id == 0x202) Device.flash29lWriteV2(rom, i, macro_blk); // by macro block
+                        else
+                            //Device.flash29lWrite(rom, i, macro_blk); // by macro block
+                            Device.flash29lWriteV2(rom, i, macro_blk); // by macro block
                         progressBar1.Value = i;
                         this.Update();
                         /*
@@ -1214,6 +1226,7 @@ namespace flashkit_md
                     Device.flash29lvReset();
                     // Device.writeWord(0xA13000, 0); // disable SRAM
                     // Device.writeWord(0xA130f1, 0); // disable SRAM
+
                     Device.setAddr(0);
                     t = DateTime.Now;
 
@@ -2203,6 +2216,115 @@ namespace flashkit_md
 
         }
 
+        private void btn_wr_mw_bl_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] rom;
+                int rom_size;
+                int block_len = 4096;
+                double time;
+                DateTime t;
+                Device.connect();
+                Device.setDelay(1);
+
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    consWriteLine("-----------------------------------------------------");
+                    FileStream f = File.OpenRead(openFileDialog1.FileName);
+                    rom_size = (int)f.Length;
+                    if (rom_size % 65536 != 0) rom_size = rom_size / 65536 * 65536 + 65536;
+                    // if (rom_size > 0x400000) rom_size = 0x400000;
+                    if (rom_size > 0x800000) rom_size = 0x800000;
+                    rom = new byte[rom_size];
+                    f.Read(rom, 0, rom_size);
+                    f.Close();
+
+                    if (cb_force_erase.Checked)
+                    {
+                        progressBar1.Value = 0;
+                        progressBar1.Maximum = 1;
+                        consWriteLine("Flash erase ...");
+                        Device.flashResetByPass();
+                        t = DateTime.Now;
+
+                        Device.flashEraseAll();
+
+                        time = (double)(DateTime.Now.Ticks - t.Ticks);
+                        consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
+
+                        progressBar1.Value = 1;
+                        this.Update();
+                    }
+                    else
+                    {
+                        progressBar1.Value = 0;
+                        progressBar1.Maximum = 1;
+                        consWriteLine("Erase only need areas ...");
+
+                        Device.flashErase(0);
+
+                        if (rom_size > 0x400000)
+                        {
+                            Device.flashErase(127);
+                            Device.flashWrite(rom, 0x7F0000, 0x10000);
+                        }
+                        else
+                        {
+                            Device.flashErase(63);
+                            Device.flashWrite(rom, 0x3F0000, 0x10000);
+                        }
+
+                        progressBar1.Value = 1;
+                        this.Update();
+                    }
+
+                    progressBar1.Value = 0;
+                    progressBar1.Maximum = 2;
+                    consWriteLine("Flash write ...");
+                    Device.flashUnlockBypass();
+                    Device.setAddr(0);
+                    t = DateTime.Now;
+
+                    Device.flashWrite(rom, 0, 0x200); // Write 1st block - Int vectors table & header
+                    progressBar1.Value = 1;
+                    this.Update();
+
+                    // Write last block - Mega WiFi Bootloader
+                    if (rom_size > 0x400000)
+                    {
+                        Device.setAddr(0x7F0000);
+                        Device.flashWrite(rom, 0x7F0000, 0x10000);
+                    }
+                    else
+                    {
+                        Device.setAddr(0x3F0000);
+                        Device.flashWrite(rom, 0x3F0000, 0x10000);
+                    }
+                    progressBar1.Value = 2;
+                    this.Update();
+
+                    time = (double)(DateTime.Now.Ticks - t.Ticks);
+                    consWriteLine("Time : " + ((time / 10000) / 1000).ToString("F") + "sec");
+                    Device.flashResetByPass();
+
+                    consWriteLine("OK");
+
+                }
+
+            }
+            catch (Exception x)
+            {
+                try
+                {
+                    Device.flashResetByPass();
+                }
+                catch (Exception) { }
+                consWriteLine(x.Message);
+            }
+            Device.disconnect();
+
+        }
 
     } // End of class Form
 } // End of namespace flashkit_md

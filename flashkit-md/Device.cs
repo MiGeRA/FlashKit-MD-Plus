@@ -14,6 +14,8 @@ namespace flashkit_md
         const byte CMD_WR = 3;
         const byte CMD_RY = 4;
         const byte CMD_DELAY = 5;
+        const byte CMD_RYF = 6; // new cmd in v2 - ready bit 7 as flags
+        const byte CMD_RYV = 7; // new cmd in v2 - ready bit 7 as value
         const byte PAR_INC = 128;
         const byte PAR_SINGLE = 64;
         const byte PAR_DEV_ID = 32;
@@ -44,7 +46,8 @@ namespace flashkit_md
                         setDelay(0);
                         port.WriteTimeout = 1000;
                         port.ReadTimeout = 1000;
-                        return (port.BaudRate);
+                        //return (port.BaudRate);
+                        return (id);
                     }
                 }
                 catch (Exception)
@@ -650,7 +653,8 @@ namespace flashkit_md
             int pref_len = 38; // "unlock" sequence (for Flash-EEPROM) + write command
             int suff_blk = 50; // control sequence (for FlashKit) do delay: 50 = ~100us (0.5*4*50)
 
-            int page_len = 256; // page len - const for MX29L3211
+            //int page_len = 256; // page len - const for 29x32xx
+            int page_len = 16; // page len - const for 29x16xx
             int wr_len;
 
             wr_len = len > page_len ? page_len : len;
@@ -740,7 +744,8 @@ namespace flashkit_md
             int suff_blk = 1333; // quantity control sequence (for FlashKit) do delay: typ. >= 5ms (0.5*6*1666)
             int pstf_len = 27; // postfix - reset (for Flash-EEPROM) command sequence
 
-            int pg_len = 256; // page len - const for MX29L3211
+            //int pg_len = 256; // page len - const for 29x32xx
+            int pg_len = 16; // page len - const for 29x16xx
             int pg_sum = len / pg_len; // quantity page (len must by multiple of 256)
             int pg_i = 0; // counter
             // 5555 2AAA 5555 addr+0 ... addr+128 [delay] 5555 2AAA 5555
@@ -845,6 +850,128 @@ namespace flashkit_md
                 cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
                 cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 25] = dat_rst;
                 cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 26] = CMD_RY;
+
+                pg_i++;
+            }
+
+            port.Write(cmd, 0, cmd.Length);
+
+        }
+
+        public static void flash29lWriteV2(byte[] buff, int offset, int len) // Write many pages ;-)
+        {
+            int pref_len = 38; // "unlock" sequence (for Flash-EEPROM) + write command
+            int suff_blk = 1500; // wait write delay: typ. >= 100us (0.5*4)*50
+            int pstf_len = 27; // postfix - reset (for Flash-EEPROM) command sequence
+
+            //int pg_len = 256; // page len - const for 29x32xx
+            int pg_len = 16; // page len - const for 29x16xx
+            int pg_sum = len / pg_len; // quantity page (len must by multiple of 256)
+            int pg_i = 0; // counter
+            // 5555 2AAA 5555 addr+0 ... addr+128 [wait status] 5555 2AAA 5555
+            //  AA   55   A0  data16 ...  data16  [wait status]  AA   55   F0 
+            int pg_seq = pref_len + pg_len + suff_blk * 2 + 1 + pstf_len; // size of sequence to write page - array macro unit
+
+            byte[] cmd = new byte[pg_seq * pg_sum];
+
+            int addr_1st = 0x5555;
+            int addr_2nd = 0x2aaa;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_wrt = 0xa0;
+            byte dat_rst = 0xf0;
+
+            int addr;
+
+            while (pg_i < pg_sum)
+            {
+                addr = offset / 2;
+
+                cmd[pg_i * pg_seq + 0] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 1] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + 2] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 3] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + 4] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 5] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + 6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + 7] = dat_1st;
+                cmd[pg_i * pg_seq + 8] = CMD_RY;
+
+                cmd[pg_i * pg_seq + 9] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 10] = (byte)(addr_2nd >> 16);
+                cmd[pg_i * pg_seq + 11] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 12] = (byte)(addr_2nd >> 8);
+                cmd[pg_i * pg_seq + 13] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 14] = (byte)(addr_2nd);
+                cmd[pg_i * pg_seq + 15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + 16] = dat_2nd;
+                cmd[pg_i * pg_seq + 17] = CMD_RY;
+
+                cmd[pg_i * pg_seq + 18] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 19] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + 20] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 21] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + 22] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 23] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + 24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + 25] = dat_wrt;
+                cmd[pg_i * pg_seq + 26] = CMD_RY;
+
+                cmd[pg_i * pg_seq + 27] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 28] = (byte)(addr >> 16);
+                cmd[pg_i * pg_seq + 29] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 30] = (byte)(addr >> 8);
+                cmd[pg_i * pg_seq + 31] = CMD_ADDR;
+                cmd[pg_i * pg_seq + 32] = (byte)(addr);
+
+                cmd[pg_i * pg_seq + 33] = CMD_LEN;
+                cmd[pg_i * pg_seq + 34] = (byte)(pg_len / 2 >> 8);
+                cmd[pg_i * pg_seq + 35] = CMD_LEN;
+                cmd[pg_i * pg_seq + 36] = (byte)(pg_len / 2);
+                cmd[pg_i * pg_seq + 37] = CMD_WR | PAR_INC;
+
+                for (int i = 0; i < pg_len; i++)
+                {
+                    cmd[pg_i * pg_seq + pref_len + i] = buff[offset++];
+                }
+
+                for (int i = 0; i < suff_blk; i++)
+                {
+                    cmd[pg_i * pg_seq + pref_len + pg_len + i * 2] = CMD_DELAY;
+                    cmd[pg_i * pg_seq + pref_len + pg_len + i * 2 + 1] = 4; // 1pts ~0.5uS, 4 = 2uS * suff_blk
+                }
+
+                cmd[pg_i * pg_seq + pref_len + pg_len] = CMD_RYF;
+
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 0] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 1] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 2] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 3] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 4] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 5] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 6] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 7] = dat_1st;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 8] = CMD_RY;
+
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 9] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 10] = (byte)(addr_2nd >> 16);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 11] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 12] = (byte)(addr_2nd >> 8);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 13] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 14] = (byte)(addr_2nd);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 15] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 16] = dat_2nd;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 17] = CMD_RY;
+
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 18] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 19] = (byte)(addr_1st >> 16);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 20] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 21] = (byte)(addr_1st >> 8);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 22] = CMD_ADDR;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 23] = (byte)(addr_1st);
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 24] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 25] = dat_rst;
+                cmd[pg_i * pg_seq + pref_len + pg_len + suff_blk * 2 + 1 + 26] = CMD_RY;
 
                 pg_i++;
             }
@@ -1117,6 +1244,68 @@ namespace flashkit_md
 
             int addr_1st = 0x555;
             int addr_2nd = 0x2aa;
+            int addr_dat = offset / 2;
+            byte dat_1st = 0xaa;
+            byte dat_2nd = 0x55;
+            byte dat_wrt = 0xa0;
+
+            for (int i = 0; i < cmd.Length; i += 37)
+            {
+                cmd[0 + i] = CMD_ADDR;
+                cmd[1 + i] = (byte)(addr_1st >> 16);
+                cmd[2 + i] = CMD_ADDR;
+                cmd[3 + i] = (byte)(addr_1st >> 8);
+                cmd[4 + i] = CMD_ADDR;
+                cmd[5 + i] = (byte)(addr_1st);
+                cmd[6 + i] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[7 + i] = dat_1st;
+                cmd[8 + i] = CMD_RY;
+
+                cmd[9 + i] = CMD_ADDR;
+                cmd[10 + i] = (byte)(addr_2nd >> 16);
+                cmd[11 + i] = CMD_ADDR;
+                cmd[12 + i] = (byte)(addr_2nd >> 8);
+                cmd[13 + i] = CMD_ADDR;
+                cmd[14 + i] = (byte)(addr_2nd);
+                cmd[15 + i] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[16 + i] = dat_2nd;
+                cmd[17 + i] = CMD_RY;
+
+                cmd[18 + i] = CMD_ADDR;
+                cmd[19 + i] = (byte)(addr_1st >> 16);
+                cmd[20 + i] = CMD_ADDR;
+                cmd[21 + i] = (byte)(addr_1st >> 8);
+                cmd[22 + i] = CMD_ADDR;
+                cmd[23 + i] = (byte)(addr_1st);
+                cmd[24 + i] = CMD_WR | PAR_SINGLE | PAR_MODE8;
+                cmd[25 + i] = dat_wrt;
+                cmd[26 + i] = CMD_RY;
+
+                cmd[27 + i] = CMD_ADDR;
+                cmd[28 + i] = (byte)(addr_dat >> 16);
+                cmd[29 + i] = CMD_ADDR;
+                cmd[30 + i] = (byte)(addr_dat >> 8);
+                cmd[31 + i] = CMD_ADDR;
+                cmd[32 + i] = (byte)(addr_dat);
+                cmd[33 + i] = CMD_WR | PAR_SINGLE;
+                cmd[34 + i] = buff[offset++];
+                cmd[35 + i] = buff[offset++];
+                cmd[36 + i] = CMD_RY;
+
+                addr_dat++;
+            }
+
+            port.Write(cmd, 0, cmd.Length);
+
+        }
+
+        public static void flash29fWrite(byte[] buff, int offset, int len)
+        {
+            len /= 2;
+            byte[] cmd = new byte[37 * len];
+
+            int addr_1st = 0x5555;
+            int addr_2nd = 0x2aaa;
             int addr_dat = offset / 2;
             byte dat_1st = 0xaa;
             byte dat_2nd = 0x55;
